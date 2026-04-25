@@ -1,6 +1,6 @@
-import { Activity, Bookmark, Calculator, RadioTower, Settings } from "lucide-react";
+import { Activity, Calculator, RadioTower } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { fetchEsiStatus, type EsiStatus } from "../lib/api";
 import { StatusBadge } from "./ui/StatusBadge";
@@ -43,8 +43,6 @@ export function AppShell({ accentColor = "#19a8ff", children, destinationColor =
             <Activity size={17} />
             Route Intel
           </a>
-          <ComingSoonAction icon={<Bookmark size={17} />} label="Saved Quotes" />
-          <ComingSoonAction icon={<Settings size={17} />} label="Settings" />
         </nav>
 
         <div className="topbar-status">
@@ -110,53 +108,6 @@ function useTranquilityStatus() {
         })
       : "",
   };
-}
-
-function ComingSoonAction({ icon, label }: { icon: ReactNode; label: string }) {
-  const [display, setDisplay] = useState(label);
-  const [active, setActive] = useState(false);
-  const timers = useRef<number[]>([]);
-
-  useEffect(() => {
-    return () => {
-      timers.current.forEach((timer) => window.clearTimeout(timer));
-    };
-  }, []);
-
-  const revealComingSoon = () => {
-    timers.current.forEach((timer) => window.clearTimeout(timer));
-    timers.current = [];
-    setActive(true);
-    setDisplay("");
-
-    const text = "Coming soon";
-    [...text].forEach((_, index) => {
-      timers.current.push(
-        window.setTimeout(() => {
-          setDisplay(text.slice(0, index + 1));
-        }, 34 * (index + 1)),
-      );
-    });
-
-    timers.current.push(
-      window.setTimeout(() => {
-        setActive(false);
-        setDisplay(label);
-      }, 1900),
-    );
-  };
-
-  return (
-    <button
-      aria-label={`${label}: coming soon`}
-      className={`nav-action nav-button ${active ? "typing" : ""}`}
-      onClick={revealComingSoon}
-      type="button"
-    >
-      {icon}
-      <span>{display || " "}</span>
-    </button>
-  );
 }
 
 function hexToRgb(hex: string) {

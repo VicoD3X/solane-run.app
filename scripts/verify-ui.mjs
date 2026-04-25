@@ -21,6 +21,9 @@ try {
   await expect(desktop.getByText("Public-only ESI scope")).toHaveCount(0);
   await expect(desktop.getByText("Demo pricing model")).toHaveCount(0);
   await expect(desktop.getByText("Route Mode")).toHaveCount(0);
+  await expect(desktop.getByText("Saved Quotes")).toHaveCount(0);
+  await expect(desktop.getByText("Settings")).toHaveCount(0);
+  await expect(desktop.getByText("Coming soon")).toHaveCount(0);
   await expect(desktop.getByRole("combobox", { name: "Pick Up" })).toHaveValue("");
   await expect(desktop.getByRole("combobox", { name: "Destination" })).toHaveValue("");
   await expect(desktop.getByLabel("Volume")).toHaveCount(0);
@@ -36,23 +39,24 @@ try {
   if (serviceAccent.toLowerCase() !== "#6fcf97") {
     throw new Error(`Expected HighSec accent #6FCF97, got ${serviceAccent}`);
   }
+  await expect(desktop.getByText(/Route calculated automatically/i)).toBeVisible({ timeout: 15000 });
   await desktop.getByRole("button", { name: "800,000 m3" }).click();
+  await expect(desktop.getByText(/Quote refreshed automatically/i)).toBeVisible();
   await desktop.getByRole("button", { name: "Calculate Run" }).click();
-  await expect(desktop.getByText(/ESI route synced/i)).toBeVisible({ timeout: 15000 });
+  await expect(desktop.getByText(/Route refreshed manually/i)).toBeVisible({ timeout: 15000 });
   await expect(desktop.locator(".collateral-readout").getByText("5.00B ISK")).toBeVisible();
-  await desktop.getByRole("button", { name: /Saved Quotes/i }).click();
-  await expect(desktop.getByRole("button", { name: /Saved Quotes: coming soon/i })).toContainText(
-    /Coming soon/,
-  );
-  await expect(desktop.getByRole("button", { name: /Saved Quotes/i })).toContainText(/Saved Quotes/, {
-    timeout: 3000,
-  });
 
   const desktopOverflow = await desktop.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   if (desktopOverflow > 1) {
     throw new Error(`Desktop horizontal overflow detected: ${desktopOverflow}px`);
+  }
+  const desktopVerticalOverflow = await desktop.evaluate(
+    () => document.documentElement.scrollHeight - document.documentElement.clientHeight,
+  );
+  if (desktopVerticalOverflow > 1) {
+    throw new Error(`Desktop vertical overflow detected: ${desktopVerticalOverflow}px`);
   }
   await desktop.screenshot({ path: "dev.logs/desktop.png", fullPage: true });
 

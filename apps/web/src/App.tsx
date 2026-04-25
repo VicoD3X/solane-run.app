@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   Boxes,
@@ -48,25 +48,93 @@ const starField = [
 function App() {
   const [input, setInput] = useState<QuoteInput>(initialInput);
   const [quote, setQuote] = useState<QuoteResult>(() => calculateQuote(initialInput, initialRoute));
-  const [message, setMessage] = useState("Select a pick up and destination to calculate the current ESI route.");
-  const [isPending, startTransition] = useTransition();
+  const [message, setMessage] = useState("");
+  const [isSyncing, setIsSyncing] = useState(false);
+  const inputRef = useRef(input);
+  const quoteRef = useRef(quote);
+  const requestRef = useRef(0);
 
   const activeColor = input.pickup?.color ?? "#19a8ff";
   const destinationColor = input.destination?.color ?? activeColor;
   const activeService = input.pickup?.serviceType ?? "Solane";
+  const pickupId = input.pickup?.id;
+  const destinationId = input.destination?.id;
   const routeNodes = useMemo(() => buildRouteNodes(quote.route.routeSystems, input), [input, quote.route.routeSystems]);
   const routePoints = useMemo(() => layoutRoutePoints(routeNodes.length), [routeNodes.length]);
   const splitIndex = Math.max(0, Math.floor((routePoints.length - 1) / 2));
   const routeServices = routeServiceLabels(input.pickup, input.destination);
-  const canCalculate = Boolean(input.pickup && input.destination) && !isPending;
+  const canCalculate = Boolean(input.pickup && input.destination) && !isSyncing;
+
+  useEffect(() => {
+    inputRef.current = input;
+  }, [input]);
+
+  useEffect(() => {
+    quoteRef.current = quote;
+  }, [quote]);
+
+  const syncRoute = useCallback(async (mode: "auto" | "manual") => {
+    const routeInput = inputRef.current;
+    if (!routeInput.pickup || !routeInput.destination) {
+      return;
+    }
+
+    const pickupId = routeInput.pickup.id;
+    const destinationId = routeInput.destination.id;
+    const requestId = requestRef.current + 1;
+    requestRef.current = requestId;
+
+    setIsSyncing(true);
+    setMessage(mode === "manual" ? "Manual route sync in progress." : "Calculating route automatically.");
+
+    try {
+      const route = await fetchEsiRoute(pickupId, destinationId);
+      const latestInput = inputRef.current;
+      if (
+        requestRef.current !== requestId ||
+        latestInput.pickup?.id !== pickupId ||
+        latestInput.destination?.id !== destinationId
+      ) {
+        return;
+      }
+
+      setQuote(calculateQuote(latestInput, route));
+      setMessage(
+        mode === "manual"
+          ? "Route refreshed manually."
+          : "Route calculated automatically. Calculate Run can retry if the ESI sync ever stalls.",
+      );
+    } catch {
+      const latestInput = inputRef.current;
+      const currentRoute = quoteRef.current.route.source === "esi"
+        ? quoteRef.current.route
+        : fallbackRoute(latestInput);
+      setQuote(calculateQuote(latestInput, currentRoute));
+      setMessage("Automatic route sync paused. Check the route endpoints or retry Calculate Run.");
+    } finally {
+      if (requestRef.current === requestId) {
+        setIsSyncing(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!pickupId || !destinationId) {
+      requestRef.current += 1;
+      setIsSyncing(false);
+      return;
+    }
+
+    void syncRoute("auto");
+  }, [pickupId, destinationId, syncRoute]);
 
   const updateInput = <K extends keyof QuoteInput>(key: K, value: QuoteInput[K]) => {
     const nextInput = { ...input, [key]: value };
     setInput(nextInput);
     setQuote(calculateQuote(nextInput, fallbackRoute(nextInput)));
     setMessage(nextInput.pickup && nextInput.destination
-      ? "Route endpoints locked. Calculate Run will request the current ESI route."
-      : "Select a pick up and destination to calculate the current ESI route.");
+      ? "Route endpoints locked. Automatic calculation is starting."
+      : "");
   };
 
   const updateSize = (size: CargoSize) => {
@@ -77,28 +145,14 @@ function App() {
       collateral: COLLATERAL_VALUE,
     };
     setInput(nextInput);
-    setQuote(calculateQuote(nextInput, fallbackRoute(nextInput)));
+    setQuote((currentQuote) => calculateQuote(nextInput, currentQuote.route.source === "esi" ? currentQuote.route : fallbackRoute(nextInput)));
     setMessage(nextInput.pickup && nextInput.destination
-      ? "Cargo size updated. Calculate Run will refresh the route estimate."
-      : "Select a pick up and destination to calculate the current ESI route.");
+      ? "Cargo size updated. Quote refreshed automatically."
+      : "");
   };
 
   const calculateRun = () => {
-    if (!input.pickup || !input.destination) {
-      return;
-    }
-
-    startTransition(async () => {
-      try {
-        const route = await fetchEsiRoute(input.pickup!.id, input.destination!.id);
-        setQuote(calculateQuote(input, route));
-        setMessage("ESI route synced. Service color follows the selected pick up system.");
-      } catch {
-        const route = fallbackRoute(input);
-        setQuote(calculateQuote(input, route));
-        setMessage("ESI is unavailable for this route right now. Endpoints are kept for the next sync.");
-      }
-    });
+    void syncRoute("manual");
   };
 
   return (
@@ -143,8 +197,9 @@ function App() {
             className="calculate-run-button"
             disabled={!canCalculate}
             onClick={calculateRun}
+            variant="secondary"
           >
-            {isPending ? "Calculating" : "Calculate Run"}
+            {isSyncing ? "Syncing route" : "Calculate Run"}
           </Button>
 
           <div className="quote-input-reserve" aria-hidden="true" />

@@ -24,7 +24,7 @@ export function QuotePanel({ input, result, message }: QuotePanelProps) {
       <div className="estimate-block">
         <span>Total Price</span>
         <strong>{formatIsk(result.estimate)}</strong>
-        <p>{message}</p>
+        {message ? <p>{message}</p> : null}
       </div>
 
       <div className="quote-lines">

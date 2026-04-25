@@ -1,4 +1,47 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Rajdhani:wght@600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+@font-face {
+  font-family: "Play";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/play-latin-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Play";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/play-latin-ext-400.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Play";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./assets/fonts/play-latin-700.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Play";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./assets/fonts/play-latin-ext-700.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Aldrich";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/aldrich-latin-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 @tailwind base;
 @tailwind components;
@@ -26,6 +69,8 @@
   --amber: #a855f7;
   --green: #72f5b2;
   --danger: #ff6b7a;
+  --font-main: "Play", system-ui, sans-serif;
+  --font-accent: "Aldrich", "Play", system-ui, sans-serif;
 }
 
 * {
@@ -38,6 +83,10 @@ html {
   background: var(--void);
 }
 
+#root {
+  min-height: 100vh;
+}
+
 body {
   min-width: 320px;
   min-height: 100vh;
@@ -48,7 +97,7 @@ body {
     radial-gradient(circle at 78% 18%, rgba(96, 215, 255, 0.11), transparent 24%),
     linear-gradient(180deg, #03070e 0%, #07111d 48%, #02060d 100%);
   color: var(--text);
-  font-family: "Space Grotesk", sans-serif;
+  font-family: var(--font-main);
 }
 
 body::before {
@@ -127,7 +176,7 @@ a {
 
 .brand strong {
   display: block;
-  font-family: "Rajdhani", sans-serif;
+  font-family: var(--font-main);
   font-size: 1.2rem;
   line-height: 1;
 }
@@ -142,7 +191,7 @@ a {
 .panel-heading span,
 .detail-band span {
   color: var(--muted);
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-accent);
   font-size: 0.74rem;
 }
 
@@ -163,31 +212,12 @@ a {
   padding: 0;
 }
 
-.nav-button {
-  color: inherit;
-  cursor: pointer;
-}
-
-.nav-button.typing span::after {
-  display: inline-block;
-  width: 1px;
-  height: 1em;
-  margin-left: 4px;
-  background: var(--plasma);
-  content: "";
-  vertical-align: -0.15em;
-  animation: caret-blink 720ms steps(2, start) infinite;
-}
-
-.topnav a,
-.topnav button {
+.topnav a {
   transition: color 180ms ease;
 }
 
 .topnav a:hover,
-.topnav a:focus-visible,
-.topnav button:hover,
-.topnav button:focus-visible {
+.topnav a:focus-visible {
   color: var(--text);
 }
 
@@ -214,7 +244,7 @@ a {
 .signal strong,
 .signal span {
   display: block;
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-accent);
   font-size: 0.72rem;
 }
 
@@ -340,7 +370,19 @@ main {
 
 .calculate-run-button {
   width: 100%;
-  margin-top: 22px;
+  min-height: 38px;
+  margin-top: 16px;
+  border-color: rgba(var(--service-accent-rgb), 0.28);
+  background: rgba(2, 6, 13, 0.26);
+  color: var(--muted);
+  box-shadow: none;
+}
+
+.calculate-run-button:hover:not(:disabled),
+.calculate-run-button:focus-visible {
+  border-color: var(--stroke-strong);
+  color: var(--text);
+  background: rgba(var(--service-accent-rgb), 0.08);
 }
 
 .collateral-readout {
@@ -358,7 +400,7 @@ main {
 
 .collateral-readout span {
   color: var(--muted);
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-accent);
   font-size: 0.72rem;
   text-transform: uppercase;
 }
@@ -457,7 +499,7 @@ main {
 .combobox-state {
   padding: 12px;
   color: var(--muted);
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-accent);
   font-size: 0.72rem;
 }
 
@@ -515,7 +557,7 @@ main {
 .combobox-option em,
 .combobox-option b {
   color: var(--muted);
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-accent);
   font-size: 0.7rem;
   font-style: normal;
 }
@@ -554,7 +596,7 @@ main {
   display: block;
   margin-bottom: 8px;
   color: var(--muted);
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-accent);
   font-size: 0.72rem;
   text-transform: uppercase;
 }
@@ -588,7 +630,7 @@ main {
 .segmented legend {
   margin-bottom: 8px;
   color: var(--muted);
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-accent);
   font-size: 0.74rem;
   text-transform: uppercase;
 }
@@ -643,7 +685,7 @@ main {
 .route-map-header h2 {
   margin: 0;
   color: #d8e6f2;
-  font-family: "Rajdhani", sans-serif;
+  font-family: var(--font-main);
   font-size: 1.28rem;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -697,7 +739,7 @@ main {
   border-radius: 6px;
   background: rgba(2, 6, 13, 0.72);
   color: #c8d6e2;
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-accent);
   font-size: 0.68rem;
   text-transform: uppercase;
 }
@@ -802,7 +844,7 @@ main {
 
 .route-label {
   fill: #cad8e5;
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-accent);
   font-size: 10px;
   paint-order: stroke;
   stroke: rgba(2, 6, 13, 0.88);
@@ -812,7 +854,7 @@ main {
 
 .route-label-major {
   fill: var(--text);
-  font-family: "Space Grotesk", sans-serif;
+  font-family: var(--font-main);
   font-size: 19px;
   font-weight: 700;
   stroke-width: 5px;
@@ -820,7 +862,7 @@ main {
 
 .route-sec {
   fill: var(--node-accent, var(--service-accent));
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-accent);
   font-size: 12px;
   paint-order: stroke;
   stroke: rgba(2, 6, 13, 0.9);
@@ -890,7 +932,7 @@ main {
   align-items: center;
   gap: 8px;
   color: var(--muted);
-  font-family: "IBM Plex Mono", monospace;
+  font-family: var(--font-accent);
   font-size: 0.72rem;
   text-transform: uppercase;
 }
@@ -915,6 +957,7 @@ main {
 }
 
 .quote-head strong {
+  font-family: var(--font-main);
   font-size: 1.12rem;
 }
 
@@ -926,7 +969,7 @@ main {
 .estimate-block strong {
   display: block;
   margin-top: 8px;
-  font-family: "Rajdhani", sans-serif;
+  font-family: var(--font-main);
   font-size: clamp(2.1rem, 4vw, 3.4rem);
   line-height: 1;
 }
@@ -1101,12 +1144,6 @@ main {
   }
 }
 
-@keyframes caret-blink {
-  50% {
-    opacity: 0;
-  }
-}
-
 @media (prefers-reduced-motion: no-preference) {
   .mission-console,
   .detail-band {
@@ -1123,6 +1160,185 @@ main {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (min-width: 1121px) {
+  html,
+  body,
+  #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .app-shell {
+    height: 100vh;
+    min-height: 0;
+    padding: 14px 22px;
+    overflow: hidden;
+  }
+
+  .topbar {
+    flex: 0 0 auto;
+    min-height: 70px;
+  }
+
+  main {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    justify-content: flex-start;
+    margin-top: 14px;
+    overflow: hidden;
+    --bottom-band-space: 84px;
+    --console-max-height: 620px;
+  }
+
+  .mission-console {
+    flex: 1 1 auto;
+    height: min(var(--console-max-height), calc(100% - var(--bottom-band-space)));
+    max-height: min(var(--console-max-height), calc(100% - var(--bottom-band-space)));
+    min-height: min(500px, calc(100% - var(--bottom-band-space)));
+    overflow: hidden;
+  }
+
+  .data-panel,
+  .quote-panel,
+  .route-map-panel {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .data-panel {
+    display: flex;
+    flex-direction: column;
+    padding: 18px 22px;
+  }
+
+  .panel-heading {
+    margin-bottom: 16px;
+  }
+
+  .form-panel {
+    min-height: 0;
+    overflow: auto;
+    scrollbar-gutter: stable;
+  }
+
+  .field-input,
+  .combobox-input {
+    min-height: 46px;
+  }
+
+  .segmented {
+    margin-top: 14px;
+  }
+
+  .segmented-option {
+    min-height: 34px;
+  }
+
+  .collateral-readout {
+    min-height: 46px;
+    margin-top: 12px;
+  }
+
+  .service-color-card {
+    min-height: 64px;
+    margin-top: 14px;
+  }
+
+  .quote-input-reserve {
+    min-height: 0;
+    margin-top: 0;
+  }
+
+  .route-panel {
+    min-height: 0;
+  }
+
+  .route-map-panel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .route-map-header {
+    flex: 0 0 auto;
+    min-height: 48px;
+  }
+
+  .route-visual {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .route-map {
+    height: 100%;
+    min-height: 250px;
+  }
+
+  .telemetry-grid {
+    flex: 0 0 auto;
+    margin: 10px 22px 14px;
+  }
+
+  .telemetry-grid div {
+    min-height: 78px;
+    padding: 12px 14px;
+  }
+
+  .quote-panel {
+    padding: 18px 20px;
+    overflow: auto;
+    scrollbar-gutter: stable;
+  }
+
+  .quote-head {
+    margin-bottom: 16px;
+  }
+
+  .estimate-block {
+    padding-bottom: 16px;
+  }
+
+  .estimate-block p {
+    min-height: 44px;
+    margin-top: 10px;
+  }
+
+  .estimate-block strong {
+    font-size: clamp(2.35rem, 3.35vw, 3rem);
+    white-space: nowrap;
+  }
+
+  .quote-lines {
+    gap: 6px;
+    margin: 12px 0;
+  }
+
+  .quote-lines div {
+    padding: 10px 0;
+  }
+
+  .fee-grid {
+    margin-bottom: 12px;
+    padding: 14px;
+  }
+
+  .quote-panel-reserve {
+    min-height: 0;
+  }
+
+  .detail-band {
+    flex: 0 0 auto;
+    gap: 16px;
+    margin-top: 10px;
+  }
+
+  .detail-band div {
+    min-height: 64px;
+    padding: 10px 20px;
   }
 }
 
