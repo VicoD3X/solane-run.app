@@ -15,7 +15,8 @@ export function QuotePanel({ input, result }: QuotePanelProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [routeMetaView, setRouteMetaView] = useState<{ closing: boolean; value: string } | null>(null);
   const speedLabel = labelForSpeed(input.speed);
-  const reward = formatFullIsk(result.estimate);
+  const isBlocked = Boolean(result.blockedReason);
+  const reward = isBlocked ? "Blocked" : formatFullIsk(result.estimate);
   const collateral = formatFullIsk(input.collateral);
   const deadline = input.speed === "rush" ? "1 day" : "3 days";
   const contractTo = "Solane Run";
@@ -53,10 +54,16 @@ export function QuotePanel({ input, result }: QuotePanelProps) {
   };
 
   return (
-    <aside className="quote-panel" id="pricing">
+    <aside className={`quote-panel ${isBlocked ? "quote-panel-blocked" : ""}`} id="pricing">
       <div className="quote-head">
         <strong>Contract Review</strong>
       </div>
+
+      {result.blockedReason ? (
+        <p className="quote-lock-message" role="status">
+          {result.blockedReason}
+        </p>
+      ) : null}
 
       <div className="contract-packet contract-review-table">
         <PacketRow
@@ -94,7 +101,7 @@ export function QuotePanel({ input, result }: QuotePanelProps) {
           copied={copiedKey === "reward"}
           icon={<CircleDollarSign size={17} />}
           label="Rewards"
-          onCopy={() => copyValue("reward", reward)}
+          onCopy={isBlocked ? undefined : () => copyValue("reward", reward)}
           value={reward}
         />
         <PacketRow

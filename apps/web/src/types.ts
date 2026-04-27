@@ -64,4 +64,5 @@ export type RouteResult = {
 export type QuoteResult = {
   route: RouteResult;
   estimate: number;
+  blockedReason?: string;
 };

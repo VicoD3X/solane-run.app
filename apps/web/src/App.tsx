@@ -9,16 +9,16 @@ import { SystemAutocomplete } from "./components/SystemAutocomplete";
 import { Input } from "./components/ui/Input";
 import { SegmentedControl } from "./components/ui/SegmentedControl";
 import {
+  availableCargoSizesForQuote,
   calculateQuote,
   cargoSizes,
-  DEFAULT_COLLATERAL_VALUE,
   fallbackRoute,
   labelForSpeed,
-  MAX_COLLATERAL_VALUE,
+  validateCollateral,
   volumeForSize,
 } from "./data/quote";
 import { fetchContractAcceptance, fetchEsiRoute } from "./lib/api";
-import { formatIskInput, parseIskInput } from "./lib/format";
+import { formatIskInput, formatIskInputText, parseIskInput } from "./lib/format";
 import type { CargoSize, ContractAcceptanceSummary, QuoteInput, QuoteResult, RouteResult, RunSpeed } from "./types";
 
 const initialInput: QuoteInput = {
@@ -27,7 +27,7 @@ const initialInput: QuoteInput = {
   size: "medium",
   speed: "rush",
   volume: volumeForSize("medium"),
-  collateral: DEFAULT_COLLATERAL_VALUE,
+  collateral: 0,
 };
 
 const initialRoute = fallbackRoute(initialInput);
@@ -48,7 +48,7 @@ type RoadOverviewView = {
 
 function App() {
   const [input, setInput] = useState<QuoteInput>(initialInput);
-  const [collateralText, setCollateralText] = useState(formatIskInput(initialInput.collateral));
+  const [collateralText, setCollateralText] = useState("");
   const [quote, setQuote] = useState<QuoteResult>(() => calculateQuote(initialInput, initialRoute));
   const [roadOverviewView, setRoadOverviewView] = useState<RoadOverviewView | null>(null);
   const [contractAcceptance, setContractAcceptance] = useState(syncingContractAcceptance);
@@ -61,6 +61,9 @@ function App() {
   const destinationId = input.destination?.id;
   const showRoadOverview = Boolean(input.pickup && input.destination);
   const layoutHasRoadOverview = showRoadOverview || Boolean(roadOverviewView);
+  const cargoSizeOptions = availableCargoSizesForQuote(input);
+  const collateralValidation = validateCollateral(input);
+  const collateralInvalid = !collateralValidation.valid;
 
   useEffect(() => {
     inputRef.current = input;
@@ -162,8 +165,26 @@ function App() {
     return () => window.clearTimeout(timeout);
   }, [input, quote.route, showRoadOverview]);
 
+  const normalizeQuoteInput = (nextInput: QuoteInput): QuoteInput => {
+    const nextSizeOptions = availableCargoSizesForQuote(nextInput);
+    const currentSizeAvailable = nextSizeOptions.some((option) => option.value === nextInput.size && !option.disabled);
+    if (currentSizeAvailable) {
+      return {
+        ...nextInput,
+        volume: volumeForSize(nextInput.size),
+      };
+    }
+
+    const fallbackSize = nextSizeOptions.find((option) => !option.disabled)?.value ?? cargoSizes[0].value;
+    return {
+      ...nextInput,
+      size: fallbackSize,
+      volume: volumeForSize(fallbackSize),
+    };
+  };
+
   const updateInput = <K extends keyof QuoteInput>(key: K, value: QuoteInput[K]) => {
-    const nextInput = { ...input, [key]: value };
+    const nextInput = normalizeQuoteInput({ ...input, [key]: value });
     setInput(nextInput);
     setQuote(calculateQuote(nextInput, fallbackRoute(nextInput)));
   };
@@ -192,12 +213,11 @@ function App() {
   };
 
   const updateCollateral = (value: string) => {
-    const parsed = parseIskInput(value);
-    const cappedCollateral = Math.min(parsed, MAX_COLLATERAL_VALUE);
-    const nextText = parsed > MAX_COLLATERAL_VALUE ? formatIskInput(MAX_COLLATERAL_VALUE) : value;
+    const nextText = formatIskInputText(value);
+    const parsed = parseIskInput(nextText);
     const nextInput = {
       ...input,
-      collateral: cappedCollateral,
+      collateral: parsed,
     };
 
     setCollateralText(nextText);
@@ -237,7 +257,7 @@ function App() {
           <SegmentedControl<CargoSize>
             label="Size"
             onChange={updateSize}
-            options={cargoSizes.map((size) => ({ label: size.label, value: size.value }))}
+            options={cargoSizeOptions.map((size) => ({ disabled: size.disabled, label: size.label, value: size.value }))}
             value={input.size}
           />
 
@@ -259,11 +279,21 @@ function App() {
           </div>
 
           <Input
-            inputMode="decimal"
+            accessory={
+              <span className="collateral-limit-chip" title={`Max collateral ${formatIskInput(collateralValidation.limit)} ISK`}>
+                <span>Max collateral</span>
+                <strong>{formatIskInput(collateralValidation.limit)} ISK</strong>
+              </span>
+            }
+            aria-invalid={collateralInvalid}
+            className={collateralInvalid ? "field-invalid" : ""}
+            hint={collateralInvalid ? collateralValidation.message ?? undefined : undefined}
+            inputMode="numeric"
             label="Collateral"
             maxLength={18}
             onChange={(event) => updateCollateral(event.target.value)}
-            placeholder="Up to 5B ISK"
+            pattern="[0-9 ]*"
+            placeholder="Enter collateral"
             value={collateralText}
           />
 

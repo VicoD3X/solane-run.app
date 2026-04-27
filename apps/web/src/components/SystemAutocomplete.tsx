@@ -1,8 +1,9 @@
 import { Search, X } from "lucide-react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, KeyboardEvent } from "react";
 import { useEffect, useId, useState } from "react";
 
 import { fetchSystems } from "../lib/api";
+import { sanitizeSystemQuery } from "../lib/guards";
 import type { SolarSystem } from "../types";
 
 type SystemAutocompleteProps = {
@@ -13,12 +14,14 @@ type SystemAutocompleteProps = {
 };
 
 export function SystemAutocomplete({ label, onChange, placeholder, value }: SystemAutocompleteProps) {
-  const inputId = useId();
-  const listId = useId();
+  const reactId = useId().replace(/[^a-zA-Z0-9_-]/g, "-");
+  const inputId = `system-${reactId}`;
+  const listId = `system-list-${reactId}`;
   const [query, setQuery] = useState(value?.name ?? "");
   const [results, setResults] = useState<SolarSystem[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   useEffect(() => {
     setQuery(value?.name ?? "");
@@ -28,12 +31,14 @@ export function SystemAutocomplete({ label, onChange, placeholder, value }: Syst
     const trimmed = query.trim();
     if (value && trimmed === value.name) {
       setResults([]);
+      setActiveIndex(-1);
       setLoading(false);
       return;
     }
 
     if (trimmed.length < 2) {
       setResults([]);
+      setActiveIndex(-1);
       setLoading(false);
       return;
     }
@@ -45,12 +50,14 @@ export function SystemAutocomplete({ label, onChange, placeholder, value }: Syst
         .then((systems) => {
           if (!cancelled) {
             setResults(systems);
+            setActiveIndex(systems.length > 0 ? 0 : -1);
             setOpen(true);
           }
         })
         .catch(() => {
           if (!cancelled) {
             setResults([]);
+            setActiveIndex(-1);
           }
         })
         .finally(() => {
@@ -67,9 +74,11 @@ export function SystemAutocomplete({ label, onChange, placeholder, value }: Syst
   }, [query, value]);
 
   const updateQuery = (nextQuery: string) => {
-    setQuery(nextQuery);
+    const sanitizedQuery = sanitizeSystemQuery(nextQuery);
+    setQuery(sanitizedQuery);
     setOpen(true);
-    if (value && nextQuery !== value.name) {
+    setActiveIndex(-1);
+    if (value && sanitizedQuery !== value.name) {
       onChange(null);
     }
   };
@@ -78,6 +87,7 @@ export function SystemAutocomplete({ label, onChange, placeholder, value }: Syst
     onChange(system);
     setQuery(system.name);
     setResults([]);
+    setActiveIndex(-1);
     setOpen(false);
   };
 
@@ -85,7 +95,37 @@ export function SystemAutocomplete({ label, onChange, placeholder, value }: Syst
     onChange(null);
     setQuery("");
     setResults([]);
+    setActiveIndex(-1);
     setOpen(false);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Escape") {
+      setOpen(false);
+      setActiveIndex(-1);
+      return;
+    }
+
+    if (!open || results.length === 0) {
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveIndex((currentIndex) => (currentIndex + 1) % results.length);
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveIndex((currentIndex) => (currentIndex <= 0 ? results.length - 1 : currentIndex - 1));
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      selectSystem(results[Math.max(0, activeIndex)]);
+    }
   };
 
   return (
@@ -97,6 +137,7 @@ export function SystemAutocomplete({ label, onChange, placeholder, value }: Syst
         <Search aria-hidden="true" className="combobox-icon" size={17} />
         <input
           aria-autocomplete="list"
+          aria-activedescendant={open && activeIndex >= 0 ? `${listId}-option-${results[activeIndex]?.id}` : undefined}
           aria-controls={listId}
           aria-expanded={open && results.length > 0}
           autoComplete="off"
@@ -105,8 +146,10 @@ export function SystemAutocomplete({ label, onChange, placeholder, value }: Syst
           onBlur={() => window.setTimeout(() => setOpen(false), 120)}
           onChange={(event) => updateQuery(event.target.value)}
           onFocus={() => setOpen(results.length > 0)}
+          onKeyDown={handleKeyDown}
           placeholder={placeholder}
           role="combobox"
+          type="text"
           value={query}
         />
         {query ? (
@@ -119,9 +162,11 @@ export function SystemAutocomplete({ label, onChange, placeholder, value }: Syst
       {open && (results.length > 0 || loading) ? (
         <div className="combobox-menu" id={listId} role="listbox">
           {loading ? <div className="combobox-state">Scanning systems</div> : null}
-          {results.map((system) => (
+          {results.map((system, index) => (
             <button
-              className="combobox-option"
+              aria-selected={index === activeIndex}
+              className={`combobox-option ${index === activeIndex ? "combobox-option-active" : ""}`}
+              id={`${listId}-option-${system.id}`}
               key={system.id}
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => selectSystem(system)}

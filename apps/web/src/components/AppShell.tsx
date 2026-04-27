@@ -66,7 +66,7 @@ export function AppShell({
 
         <div className="topbar-status">
           <StatusBadge>BETA</StatusBadge>
-          <div className="service-status" aria-label="Service Status Active">
+          <div className="service-status">
             <span className="status-pulse" aria-hidden="true" />
             <div>
               <strong>Service Status</strong>

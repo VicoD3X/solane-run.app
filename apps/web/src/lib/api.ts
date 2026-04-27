@@ -1,6 +1,8 @@
 import type { ContractAcceptanceSummary, RouteResult, SolarSystem } from "../types";
+import { sanitizeApiText, sanitizeFiniteNumber, sanitizeHexColor, sanitizePositiveInteger, sanitizeSystemQuery } from "./guards";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8001";
+const REQUEST_TIMEOUT_MS = 8_000;
 
 type RouteResponse = {
   systems: number[];
@@ -19,10 +21,11 @@ export type EsiStatus = {
 
 export async function fetchSystems(query: string, limit = 12): Promise<SolarSystem[]> {
   const params = new URLSearchParams({
-    q: query,
+    q: sanitizeSystemQuery(query),
     limit: String(limit),
   });
-  return getJson<SolarSystem[]>(`/api/eve/systems?${params.toString()}`);
+  const systems = await getJson<unknown[]>(`/api/eve/systems?${params.toString()}`);
+  return systems.map((system) => normalizeSolarSystem(system));
 }
 
 export async function fetchEsiRoute(originId: number, destinationId: number): Promise<RouteResult> {
@@ -34,10 +37,18 @@ export async function fetchEsiRoute(originId: number, destinationId: number): Pr
 
   return {
     source: "esi",
-    systems: route.systems,
-    routeSystems: route.routeSystems,
-    routeTraffic: route.routeTraffic,
-    jumps: route.jumps,
+    systems: Array.isArray(route.systems) ? route.systems.map((systemId) => sanitizePositiveInteger(systemId)) : [],
+    routeSystems: Array.isArray(route.routeSystems) ? route.routeSystems.map(normalizeRouteSystem) : [],
+    routeTraffic: route.routeTraffic ? {
+      coverage: sanitizeFiniteNumber(route.routeTraffic.coverage),
+      knownSystems: sanitizePositiveInteger(route.routeTraffic.knownSystems),
+      ...normalizeRouteTrafficLevel(route.routeTraffic.level),
+      totalShipJumpsLastHour: route.routeTraffic.totalShipJumpsLastHour === null
+        ? null
+        : sanitizePositiveInteger(route.routeTraffic.totalShipJumpsLastHour),
+      totalSystems: sanitizePositiveInteger(route.routeTraffic.totalSystems),
+    } : null,
+    jumps: sanitizePositiveInteger(route.jumps),
   };
 }
 
@@ -46,15 +57,117 @@ export async function fetchEsiStatus(): Promise<EsiStatus> {
 }
 
 export async function fetchContractAcceptance(): Promise<ContractAcceptanceSummary> {
-  return getJson<ContractAcceptanceSummary>("/api/solane/contract-acceptance");
+  const acceptance = await getJson<ContractAcceptanceSummary>("/api/solane/contract-acceptance");
+  const acceptanceLevel = normalizeContractAcceptanceLevel(acceptance.level);
+  return {
+    isFresh: Boolean(acceptance.isFresh),
+    label: acceptanceLevel.label,
+    lastSyncedAt: acceptance.lastSyncedAt,
+    level: acceptanceLevel.level,
+    source: acceptance.source === "corp-contracts" ? "corp-contracts" : "syncing",
+  };
 }
 
 async function getJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`);
+  if (!path.startsWith("/") || path.startsWith("//")) {
+    throw new Error("Invalid API path.");
+  }
+
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    cache: "no-store",
+    credentials: "omit",
+    headers: {
+      Accept: "application/json",
+    },
+    referrerPolicy: "no-referrer",
+    signal: controller.signal,
+  }).finally(() => window.clearTimeout(timeout));
 
   if (!response.ok) {
     throw new Error(await response.text());
   }
 
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    throw new Error("Unexpected API response type.");
+  }
+
   return response.json() as Promise<T>;
+}
+
+function normalizeSolarSystem(value: unknown): SolarSystem {
+  const system = isRecord(value) ? value : {};
+  return {
+    color: sanitizeHexColor(system.color),
+    constellationId: sanitizePositiveInteger(system.constellationId),
+    id: sanitizePositiveInteger(system.id),
+    name: sanitizeApiText(system.name),
+    regionId: sanitizePositiveInteger(system.regionId),
+    regionName: sanitizeApiText(system.regionName),
+    securityDisplay: sanitizeApiText(system.securityDisplay),
+    securityStatus: sanitizeFiniteNumber(system.securityStatus),
+    serviceType: normalizeServiceType(system.serviceType),
+  };
+}
+
+function normalizeRouteSystem(value: unknown): RouteResult["routeSystems"][number] {
+  const system = isRecord(value) ? value : {};
+  return {
+    color: system.color ? sanitizeHexColor(system.color) : null,
+    id: sanitizePositiveInteger(system.id),
+    name: sanitizeApiText(system.name),
+    securityDisplay: system.securityDisplay ? sanitizeApiText(system.securityDisplay) : null,
+    serviceType: system.serviceType ? sanitizeApiText(system.serviceType) : null,
+    shipJumpsLastHour: system.shipJumpsLastHour === null || system.shipJumpsLastHour === undefined
+      ? null
+      : sanitizePositiveInteger(system.shipJumpsLastHour),
+  };
+}
+
+function normalizeRouteTrafficLevel(value: unknown): Pick<NonNullable<RouteResult["routeTraffic"]>, "label" | "level"> {
+  if (value === "clear") {
+    return { label: "Clear", level: "clear" };
+  }
+  if (value === "active") {
+    return { label: "Active", level: "active" };
+  }
+  if (value === "busy") {
+    return { label: "Busy", level: "busy" };
+  }
+  if (value === "heavy") {
+    return { label: "Heavy", level: "heavy" };
+  }
+  return { label: "Unavailable", level: "unavailable" };
+}
+
+function normalizeContractAcceptanceLevel(value: unknown): Pick<ContractAcceptanceSummary, "label" | "level"> {
+  if (value === "express") {
+    return { label: "Express", level: "express" };
+  }
+  if (value === "fast") {
+    return { label: "Fast", level: "fast" };
+  }
+  if (value === "normal") {
+    return { label: "Normal", level: "normal" };
+  }
+  if (value === "slower") {
+    return { label: "Slower", level: "slower" };
+  }
+  if (value === "extended") {
+    return { label: "Extended", level: "extended" };
+  }
+  return { label: "Syncing", level: "syncing" };
+}
+
+function normalizeServiceType(value: unknown): SolarSystem["serviceType"] {
+  return value === "Pochven" || value === "Thera" || value === "HighSec" || value === "LowSec" || value === "Zarzakh"
+    ? value
+    : "HighSec";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }

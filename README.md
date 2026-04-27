@@ -128,9 +128,15 @@ http://127.0.0.1:5173/
 ```powershell
 npm run lint:web
 npm run build:web
+npm run security:web
 node scripts/verify-ui.mjs
+npm run w3c:web
 docker compose -f infra/docker-compose.yml config
 ```
+
+`npm run w3c:web` validates the rendered React page with local HTML5 checks and WAI/WCAG accessibility rules. It intentionally does not run a legacy CSS validator because the UI uses modern CSS features required by the design system.
+
+`npm run security:web` validates the first frontend hardening layer: CSP/header coverage, no browser-side dangerous rendering APIs, no production sourcemaps, and no private EVE token patterns in public frontend files.
 
 `scripts/verify-ui.mjs` is the current Playwright smoke test. It always validates the frontend shell and responsive rendering. When `VITE_API_BASE_URL` is set and points to a compatible Solane Run API, it also validates automatic route refresh and road overview behavior.
 

@@ -29,3 +29,12 @@ jobs:
 
       - name: Build web
         run: npm run build:web
+
+      - name: Validate frontend security guardrails
+        run: npm run security:web
+
+      - name: Validate W3C and accessibility
+        run: |
+          npm run dev:web -- --host 127.0.0.1 > /tmp/solane-run-vite.log 2>&1 &
+          npm --workspace apps/web exec wait-on http://127.0.0.1:5173
+          npm run w3c:web

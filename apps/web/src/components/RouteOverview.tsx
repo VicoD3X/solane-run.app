@@ -38,7 +38,7 @@ export function RouteOverview({ acceptance, closing = false, input, route }: Rou
           <span>Road Overview</span>
           <h2 id="road-overview-title">{routeLabel}</h2>
         </div>
-        <div className="road-jump-metric" aria-label={`${route.jumps} total jumps`}>
+        <div className="road-jump-metric" role="group" aria-label={`${route.jumps} total jumps`}>
           <Waypoints size={17} />
           <span>Total jumps</span>
           <strong>{route.jumps}</strong>

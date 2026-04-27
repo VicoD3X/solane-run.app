@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 type SegmentedControlProps<T extends string> = {
   label: string;
   value: T;
-  options: { label: string; value: T }[];
+  options: { disabled?: boolean; label: string; value: T }[];
   onChange: (value: T) => void;
 };
 
@@ -28,6 +28,7 @@ export function SegmentedControl<T extends string>({
           <button
             aria-pressed={option.value === value}
             className="segmented-option"
+            disabled={option.disabled}
             key={option.value}
             onClick={() => onChange(option.value)}
             type="button"

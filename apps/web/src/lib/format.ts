@@ -19,7 +19,20 @@ export function formatM3(value: number): string {
 }
 
 export function formatIskInput(value: number): string {
-  return value.toLocaleString("en-US");
+  return groupDigitsWithSpaces(String(Math.round(value)));
+}
+
+export function formatIskInputText(value: string): string {
+  const digits = sanitizeCollateralInput(value);
+  if (!digits) {
+    return "";
+  }
+
+  return groupDigitsWithSpaces(digits);
+}
+
+function groupDigitsWithSpaces(value: string): string {
+  return value.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
 export function parseIskInput(value: string): number {
@@ -50,3 +63,4 @@ export function parseIskInput(value: string): number {
 
   return Math.round(amount);
 }
+import { sanitizeCollateralInput } from "./guards";

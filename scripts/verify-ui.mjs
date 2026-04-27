@@ -95,11 +95,25 @@ try {
   await expect(desktop.getByRole("combobox", { name: "Pick Up" })).toHaveValue("");
   await expect(desktop.getByRole("combobox", { name: "Destination" })).toHaveValue("");
   await expect(desktop.getByRole("textbox", { name: "Volume" })).toHaveCount(0);
-  await expect(desktop.getByRole("textbox", { name: "Collateral" })).toHaveValue("5,000,000,000");
+  await expect(desktop.getByRole("textbox", { name: "Collateral" })).toHaveValue("");
+  await expect(desktop.locator(".contract-packet").getByText("60,000 m3")).toBeVisible();
+  await expect(desktop.locator(".contract-packet").getByText("0 ISK")).toHaveCount(2);
+  await desktop.getByRole("combobox", { name: "Pick Up" }).fill("Jita123");
+  await expect(desktop.getByRole("combobox", { name: "Pick Up" })).toHaveValue("Jita");
+  await desktop.getByRole("combobox", { name: "Pick Up" }).fill("");
   await desktop.getByRole("textbox", { name: "Collateral" }).fill("2.5B");
+  await expect(desktop.getByRole("textbox", { name: "Collateral" })).toHaveValue("25");
+  await desktop.getByRole("textbox", { name: "Collateral" }).fill("2500000000");
   await expect(desktop.locator(".contract-packet").getByText("2,500,000,000 ISK")).toBeVisible();
-  await desktop.getByRole("textbox", { name: "Collateral" }).fill("6B");
-  await expect(desktop.getByRole("textbox", { name: "Collateral" })).toHaveValue("5,000,000,000");
+  await desktop.getByRole("textbox", { name: "Collateral" }).fill("6000000000");
+  await expect(desktop.getByRole("textbox", { name: "Collateral" })).toHaveValue("6 000 000 000");
+  await expect(desktop.getByRole("status")).toHaveText("Collateral limit exceeded. Maximum allowed is 5,000,000,000 ISK.");
+  await expect(desktop.locator(".contract-packet").getByText("Blocked")).toBeVisible();
+  await expect(desktop.getByRole("button", { name: "Copy Rewards" })).toHaveCount(0);
+  await desktop.getByRole("textbox", { name: "Collateral" }).fill("200000000");
+  await expect(desktop.getByRole("textbox", { name: "Collateral" })).toHaveValue("200 000 000");
+  await expect(desktop.getByText("Collateral limit exceeded. Maximum allowed is 5,000,000,000 ISK.")).toHaveCount(0);
+  await expect(desktop.getByRole("button", { name: "Copy Rewards" })).toBeVisible();
 
   const serviceAccent = await desktop.locator(".app-shell").evaluate((node) =>
     getComputedStyle(node).getPropertyValue("--service-accent").trim(),
@@ -138,7 +152,7 @@ try {
     await expect(desktop.locator(".contract-packet").getByText("800,000 m3")).toBeVisible();
     await desktop.waitForFunction(() => {
       const text = document.querySelector(".contract-packet")?.textContent ?? "";
-      return text.includes("5,000,000,000 ISK");
+      return text.includes("200,000,000 ISK");
     }, null, { timeout: 15000 });
   }
 

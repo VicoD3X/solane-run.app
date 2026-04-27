@@ -1,13 +1,29 @@
-import type { CargoSize, QuoteInput, QuoteResult, RouteResult, RunSpeed } from "../types";
+import type { CargoSize, QuoteInput, QuoteResult, RouteResult, RunSpeed, ServiceType } from "../types";
 
 export const DEFAULT_COLLATERAL_VALUE = 5_000_000_000;
 export const MAX_COLLATERAL_VALUE = 5_000_000_000;
 
-export const cargoSizes: { label: string; value: CargoSize; volume: number }[] = [
+export type CargoSizeOption = {
+  disabled?: boolean;
+  label: string;
+  value: CargoSize;
+  volume: number;
+};
+
+export type CollateralValidation = {
+  limit: number;
+  message: string | null;
+  valid: boolean;
+};
+
+export const cargoSizes: CargoSizeOption[] = [
   { label: "13,000 m3", value: "small", volume: 13_000 },
   { label: "60,000 m3", value: "medium", volume: 60_000 },
   { label: "800,000 m3", value: "freighter", volume: 800_000 },
 ];
+
+const collateralLimitsByService: Partial<Record<ServiceType, Partial<Record<CargoSize, number>>>> = {};
+const cargoSizesByService: Partial<Record<ServiceType, CargoSize[]>> = {};
 
 export const runSpeeds: { label: string; summaryLabel: string; value: RunSpeed }[] = [
   { label: "NORMAL", summaryLabel: "Normal", value: "normal" },
@@ -26,6 +42,61 @@ export function labelForSpeed(speed: RunSpeed) {
   return runSpeeds.find((option) => option.value === speed)?.summaryLabel ?? runSpeeds[0].summaryLabel;
 }
 
+export function availableCargoSizesForQuote(input: Pick<QuoteInput, "pickup" | "destination">): CargoSizeOption[] {
+  const services = selectedServices(input);
+  if (services.length === 0) {
+    return cargoSizes;
+  }
+
+  const allowedSizes = services.reduce<Set<CargoSize> | null>((currentAllowed, service) => {
+    const serviceSizes = cargoSizesByService[service];
+    if (!serviceSizes) {
+      return currentAllowed;
+    }
+
+    const nextAllowed = new Set(serviceSizes);
+    if (!currentAllowed) {
+      return nextAllowed;
+    }
+
+    return new Set([...currentAllowed].filter((size) => nextAllowed.has(size)));
+  }, null);
+
+  if (!allowedSizes) {
+    return cargoSizes;
+  }
+
+  return cargoSizes.map((option) => ({
+    ...option,
+    disabled: !allowedSizes.has(option.value),
+  }));
+}
+
+export function collateralLimitForQuote(input: Pick<QuoteInput, "pickup" | "destination" | "size">): number {
+  const configuredLimits = selectedServices(input)
+    .map((service) => collateralLimitsByService[service]?.[input.size])
+    .filter((limit): limit is number => typeof limit === "number");
+
+  return Math.min(MAX_COLLATERAL_VALUE, ...configuredLimits);
+}
+
+export function validateCollateral(input: QuoteInput): CollateralValidation {
+  const limit = collateralLimitForQuote(input);
+  const valid = input.collateral <= limit;
+
+  return {
+    limit,
+    valid,
+    message: valid ? null : `Collateral limit exceeded. Maximum allowed is ${limit.toLocaleString("en-US")} ISK.`,
+  };
+}
+
+function selectedServices(input: Pick<QuoteInput, "pickup" | "destination">): ServiceType[] {
+  return [input.pickup?.serviceType, input.destination?.serviceType].filter((service): service is ServiceType =>
+    Boolean(service),
+  );
+}
+
 export function fallbackRoute(input: QuoteInput): RouteResult {
   return {
     source: "local",
@@ -36,6 +107,15 @@ export function fallbackRoute(input: QuoteInput): RouteResult {
 }
 
 export function calculateQuote(input: QuoteInput, route: RouteResult): QuoteResult {
+  const collateralValidation = validateCollateral(input);
+  if (!collateralValidation.valid) {
+    return {
+      route,
+      estimate: 0,
+      blockedReason: collateralValidation.message ?? "Quote blocked by collateral limit.",
+    };
+  }
+
   const hasPricedRoute = Boolean(input.pickup && input.destination && route.jumps > 0);
   const base = hasPricedRoute ? 42_000_000 + route.jumps * 2_200_000 : 0;
   const volumeFee = hasPricedRoute ? input.volume * 780 : 0;
