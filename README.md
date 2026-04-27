@@ -108,7 +108,7 @@ npm install
 Configure the private API base URL if needed:
 
 ```powershell
-$env:VITE_API_BASE_URL="http://localhost:8000"
+$env:VITE_API_BASE_URL="http://localhost:8001"
 ```
 
 Run the web app:
@@ -139,7 +139,7 @@ docker compose -f infra/docker-compose.yml config
 Copy `.env.example` and configure values as needed:
 
 ```text
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_BASE_URL=http://localhost:8001
 ```
 
 ## License

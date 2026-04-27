@@ -1,7 +1,7 @@
 import { chromium, expect } from "@playwright/test";
 
 const baseUrl = process.env.VITE_SMOKE_BASE_URL ?? "http://127.0.0.1:5173";
-const apiBaseUrl = process.env.VITE_API_BASE_URL;
+const apiBaseUrl = process.env.VITE_API_BASE_URL ?? "http://localhost:8001";
 const apiAvailable = apiBaseUrl ? await isApiAvailable(apiBaseUrl) : false;
 
 const browser = await chromium.launch({ headless: true });
