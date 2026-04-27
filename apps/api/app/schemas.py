@@ -70,6 +70,7 @@ class RouteSystemResponse(BaseModel):
     securityDisplay: str | None = None
     serviceType: str | None = None
     color: str | None = None
+    shipJumpsLastHour: int | None = None
 
 
 class RouteResponse(BaseModel):

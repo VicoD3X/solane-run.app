@@ -1,8 +1,12 @@
+from datetime import UTC, datetime
+
 import pytest
 from fastapi.testclient import TestClient
 
 from app.dependencies import get_esi_client
+from app.esi import EsiError
 from app.main import app
+from app.routers import eve as eve_router
 from app.system_catalog import SystemCatalog, choose_route_flag
 
 
@@ -34,6 +38,13 @@ class FakeEsiClient:
             "vip": False,
         }
 
+    async def system_jumps(self) -> list[dict]:
+        return [
+            {"system_id": 30000142, "ship_jumps": 101},
+            {"system_id": 30000144, "ship_jumps": 7},
+            {"system_id": 30002187, "ship_jumps": 55},
+        ]
+
 
 async def override_esi_client():
     yield FakeEsiClient()
@@ -41,6 +52,8 @@ async def override_esi_client():
 
 @pytest.fixture(autouse=True)
 def client_override():
+    eve_router._system_jumps_cache = None
+    eve_router._system_jumps_cache_expires_at = datetime.min.replace(tzinfo=UTC)
     app.dependency_overrides[get_esi_client] = override_esi_client
     yield
     app.dependency_overrides.clear()
@@ -78,7 +91,35 @@ def test_route() -> None:
         )
 
     assert response.status_code == 200
-    assert response.json()["jumps"] == 2
+    body = response.json()
+    assert body["jumps"] == 2
+    assert body["systems"] == [30000142, 30000144, 30002187]
+    assert [system["id"] for system in body["routeSystems"]] == [30000142, 30000144, 30002187]
+    assert body["routeSystems"][0]["shipJumpsLastHour"] == 101
+    assert body["routeSystems"][1]["shipJumpsLastHour"] == 7
+    assert body["routeSystems"][2]["shipJumpsLastHour"] == 55
+
+
+def test_route_keeps_systems_when_jump_traffic_fails() -> None:
+    class FailingTrafficEsiClient(FakeEsiClient):
+        async def system_jumps(self) -> list[dict]:
+            raise EsiError(502, "Traffic unavailable")
+
+    async def override_failing_traffic_client():
+        yield FailingTrafficEsiClient()
+
+    app.dependency_overrides[get_esi_client] = override_failing_traffic_client
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/eve/route",
+            params={"originId": 30000142, "destinationId": 30002187, "flag": "secure"},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["systems"] == [30000142, 30000144, 30002187]
+    assert all(system["shipJumpsLastHour"] is None for system in body["routeSystems"])
 
 
 def test_route_rejects_invalid_flag() -> None:

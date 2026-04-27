@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Premium freight calculator for EVE Online logistics.</strong><br />
-  Public ESI only, service-colored routes, and a modern command-desk interface for Solane Run.
+  Public ESI only, route reconnaissance, and a modern command-desk interface for Solane Run.
 </p>
 
 <p align="center">
@@ -31,9 +31,9 @@ The product intentionally avoids EVE SSO, private structures, contracts, saved q
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| Freight calculator | Active | Pick Up, Destination, cargo size, collateral band, quote summary |
+| Freight calculator | Active | Pick Up, Destination, cargo size, free collateral up to 5B ISK, contract review |
 | System catalog | Active | Official SDE seed filtered to HighSec, LowSec, Pochven, Thera, and Zarzakh |
-| Route overview | Active | Public ESI route, gate-to-gate jumps, service-colored visual route |
+| Road overview | Active | Public ESI route, gate-to-gate jumps, system security bar, and last-hour traffic tooltips |
 | Tranquility status | Active | Public ESI status with player count and EVE time |
 | Private ESI features | Out of scope | No auth, no saved quotes, no private structures, no contracts |
 
@@ -44,7 +44,7 @@ flowchart LR
   Web["React + Vite + TypeScript"] --> API["FastAPI backend"]
   API --> ESI["EVE ESI public endpoints"]
   API --> SDE["Static SDE system seed"]
-  Web --> UI["Service-colored freight UI"]
+  Web --> UI["Fixed violet command UI"]
   API --> Cache["Local catalog cache"]
 ```
 
@@ -67,6 +67,7 @@ scripts/     Local verification scripts
 Solane Run currently uses public data only:
 
 - ESI route endpoint for gate-to-gate routes
+- ESI system jumps endpoint for last-hour traffic context
 - ESI status endpoint for Tranquility status
 - ESI systems refresh for catalog validation
 - Official SDE seed for the selectable system catalog
@@ -79,9 +80,9 @@ Excluded on purpose:
 - private contracts or corporation order data
 - admin pricing panels
 
-## Service Colors
+## Visual System
 
-The selected Pick Up system drives the visual service theme.
+The global UI accent is fixed to Solane Run violet for consistency across the calculator. Route and system-specific security information still uses service colors where it carries operational meaning.
 
 | Service | Color |
 | --- | --- |
@@ -133,7 +134,7 @@ node scripts/verify-ui.mjs
 docker compose -f infra/docker-compose.yml config
 ```
 
-`scripts/verify-ui.mjs` is the current Playwright smoke test. It validates the main calculator flow, service coloring, automatic route refresh, responsive rendering, and the absence of private/auth-oriented UI.
+`scripts/verify-ui.mjs` is the current Playwright smoke test. It validates the main calculator flow, fixed violet UI accent, automatic route refresh, road overview behavior, responsive rendering, and the absence of private/auth-oriented UI.
 
 ## Environment
 

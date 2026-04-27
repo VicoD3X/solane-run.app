@@ -4,8 +4,8 @@ import { ArrowRight } from "lucide-react";
 import { AppShell } from "./components/AppShell";
 import { DataPanel } from "./components/DataPanel";
 import { QuotePanel } from "./components/QuotePanel";
+import { RouteOverview } from "./components/RouteOverview";
 import { SystemAutocomplete } from "./components/SystemAutocomplete";
-import { Button } from "./components/ui/Button";
 import { Input } from "./components/ui/Input";
 import { SegmentedControl } from "./components/ui/SegmentedControl";
 import {
@@ -19,7 +19,7 @@ import {
 } from "./data/quote";
 import { fetchEsiRoute } from "./lib/api";
 import { formatIskInput, parseIskInput } from "./lib/format";
-import type { CargoSize, QuoteInput, QuoteResult, RunSpeed } from "./types";
+import type { CargoSize, QuoteInput, QuoteResult, RouteResult, RunSpeed } from "./types";
 
 const initialInput: QuoteInput = {
   pickup: null,
@@ -31,22 +31,28 @@ const initialInput: QuoteInput = {
 };
 
 const initialRoute = fallbackRoute(initialInput);
+const SOLANE_UI_ACCENT = "#a855f7";
+
+type RoadOverviewView = {
+  closing: boolean;
+  input: QuoteInput;
+  route: RouteResult;
+};
 
 function App() {
   const [input, setInput] = useState<QuoteInput>(initialInput);
   const [collateralText, setCollateralText] = useState(formatIskInput(initialInput.collateral));
   const [quote, setQuote] = useState<QuoteResult>(() => calculateQuote(initialInput, initialRoute));
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [roadOverviewView, setRoadOverviewView] = useState<RoadOverviewView | null>(null);
+  const [, setIsSyncing] = useState(false);
   const inputRef = useRef(input);
   const quoteRef = useRef(quote);
   const requestRef = useRef(0);
 
-  const activeColor = input.pickup?.color ?? "#19a8ff";
-  const destinationColor = input.destination?.color ?? activeColor;
-  const activeService = input.pickup?.serviceType ?? "Solane";
   const pickupId = input.pickup?.id;
   const destinationId = input.destination?.id;
-  const canCalculate = Boolean(input.pickup && input.destination) && !isSyncing;
+  const showRoadOverview = Boolean(input.pickup && input.destination);
+  const layoutHasRoadOverview = showRoadOverview || Boolean(roadOverviewView);
 
   useEffect(() => {
     inputRef.current = input;
@@ -103,6 +109,26 @@ function App() {
     void syncRoute();
   }, [pickupId, destinationId, syncRoute]);
 
+  useEffect(() => {
+    if (showRoadOverview) {
+      setRoadOverviewView({ closing: false, input, route: quote.route });
+      return;
+    }
+
+    setRoadOverviewView((currentView) => {
+      if (!currentView || currentView.closing) {
+        return currentView;
+      }
+      return { ...currentView, closing: true };
+    });
+
+    const timeout = window.setTimeout(() => {
+      setRoadOverviewView((currentView) => (currentView?.closing ? null : currentView));
+    }, 420);
+
+    return () => window.clearTimeout(timeout);
+  }, [input, quote.route, showRoadOverview]);
+
   const updateInput = <K extends keyof QuoteInput>(key: K, value: QuoteInput[K]) => {
     const nextInput = { ...input, [key]: value };
     setInput(nextInput);
@@ -132,10 +158,6 @@ function App() {
     updateSpeed(input.speed === "rush" ? "normal" : "rush");
   };
 
-  const calculateRun = () => {
-    void syncRoute();
-  };
-
   const updateCollateral = (value: string) => {
     const parsed = parseIskInput(value);
     const cappedCollateral = Math.min(parsed, MAX_COLLATERAL_VALUE);
@@ -151,8 +173,17 @@ function App() {
   };
 
   return (
-    <AppShell accentColor={activeColor} destinationColor={destinationColor} serviceLabel={activeService}>
-      <section className="mission-console" id="calculator" aria-label="Solane Run freight calculator">
+    <AppShell
+      accentColor={SOLANE_UI_ACCENT}
+      destinationColor={SOLANE_UI_ACCENT}
+      routeVisible={layoutHasRoadOverview}
+      serviceLabel="Solane"
+    >
+      <section
+        className={`mission-console ${layoutHasRoadOverview ? "mission-console-with-route" : ""}`}
+        id="calculator"
+        aria-label="Solane Run freight calculator"
+      >
         <DataPanel className="form-panel" eyebrow="Quote Input" title="Freight parameters">
           <div className="system-row">
             <SystemAutocomplete
@@ -203,17 +234,20 @@ function App() {
             value={collateralText}
           />
 
-          <Button
-            className="calculate-run-button"
-            disabled={!canCalculate}
-            onClick={calculateRun}
-            variant="secondary"
-          >
-            {isSyncing ? "Syncing route" : "Calculate Run"}
-          </Button>
+          <p className="auto-calc-note">
+            Auto-calculated as inputs change.
+          </p>
 
           <div className="quote-input-reserve" aria-hidden="true" />
         </DataPanel>
+
+        {roadOverviewView ? (
+          <RouteOverview
+            closing={roadOverviewView.closing}
+            input={roadOverviewView.input}
+            route={roadOverviewView.route}
+          />
+        ) : null}
 
         <QuotePanel
           input={input}

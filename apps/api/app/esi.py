@@ -69,6 +69,13 @@ class EsiClient:
             params={"datasource": settings.esi_datasource},
         )
 
+    async def system_jumps(self) -> list[dict[str, Any]]:
+        return await self._request(
+            "GET",
+            "/universe/system_jumps/",
+            params={"datasource": settings.esi_datasource},
+        )
+
     async def systems(self) -> list[int]:
         return await self._request(
             "GET",

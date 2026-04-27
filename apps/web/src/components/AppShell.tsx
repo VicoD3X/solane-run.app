@@ -9,10 +9,17 @@ type AppShellProps = {
   accentColor?: string;
   children: ReactNode;
   destinationColor?: string;
+  routeVisible?: boolean;
   serviceLabel?: string;
 };
 
-export function AppShell({ accentColor = "#19a8ff", children, destinationColor = accentColor, serviceLabel }: AppShellProps) {
+export function AppShell({
+  accentColor = "#19a8ff",
+  children,
+  destinationColor = accentColor,
+  routeVisible = false,
+  serviceLabel,
+}: AppShellProps) {
   const { status, healthy, eveTime } = useTranquilityStatus();
   const accentRgb = hexToRgb(accentColor);
   const destinationRgb = hexToRgb(destinationColor);
@@ -24,7 +31,11 @@ export function AppShell({ accentColor = "#19a8ff", children, destinationColor =
   } as CSSProperties;
 
   return (
-    <div className="app-shell min-h-screen" data-service={serviceLabel ?? "Solane"} style={shellStyle}>
+    <div
+      className={`app-shell min-h-screen ${routeVisible ? "app-shell-route-visible" : ""}`}
+      data-service={serviceLabel ?? "Solane"}
+      style={shellStyle}
+    >
       <header className="topbar">
         <a aria-label="Solane Run dashboard" className="brand" href="/">
           <img alt="" src="/assets/logo-detoure.png" />

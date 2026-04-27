@@ -31,6 +31,7 @@ export type RouteSystem = {
   securityDisplay?: string | null;
   serviceType?: string | null;
   color?: string | null;
+  shipJumpsLastHour?: number | null;
 };
 
 export type RouteResult = {

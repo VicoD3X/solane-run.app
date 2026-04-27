@@ -8,7 +8,8 @@ Solane Run is currently a beta-stage EVE Online freight calculator. Contribution
 - Public ESI and SDE-backed data are preferred.
 - Do not add EVE SSO, private ESI scopes, saved account data, private structures, contracts, or order workflows unless the project owner explicitly requests it.
 - Keep the UI useful on the first screen. This is an app surface, not a marketing landing page.
-- Preserve the service color system for Pochven, Thera, HighSec, LowSec, and Zarzakh.
+- Keep the global UI accent fixed to Solane Run violet.
+- Preserve service colors only where they describe route or system security context for Pochven, Thera, HighSec, LowSec, and Zarzakh.
 
 ## Development
 
