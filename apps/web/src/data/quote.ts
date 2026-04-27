@@ -1,11 +1,17 @@
-import type { CargoSize, QuoteInput, QuoteResult, RouteResult } from "../types";
+import type { CargoSize, QuoteInput, QuoteResult, RouteResult, RunSpeed } from "../types";
 
-export const COLLATERAL_VALUE = 5_000_000_000;
+export const DEFAULT_COLLATERAL_VALUE = 5_000_000_000;
+export const MAX_COLLATERAL_VALUE = 5_000_000_000;
 
 export const cargoSizes: { label: string; value: CargoSize; volume: number }[] = [
   { label: "13,000 m3", value: "small", volume: 13_000 },
   { label: "60,000 m3", value: "medium", volume: 60_000 },
   { label: "800,000 m3", value: "freighter", volume: 800_000 },
+];
+
+export const runSpeeds: { label: string; summaryLabel: string; value: RunSpeed }[] = [
+  { label: "NORMAL", summaryLabel: "Normal", value: "normal" },
+  { label: "RUSH", summaryLabel: "Rush", value: "rush" },
 ];
 
 export function volumeForSize(size: CargoSize) {
@@ -14,6 +20,10 @@ export function volumeForSize(size: CargoSize) {
 
 export function labelForSize(size: CargoSize) {
   return cargoSizes.find((option) => option.value === size)?.label ?? cargoSizes[0].label;
+}
+
+export function labelForSpeed(speed: RunSpeed) {
+  return runSpeeds.find((option) => option.value === speed)?.summaryLabel ?? runSpeeds[0].summaryLabel;
 }
 
 export function fallbackRoute(input: QuoteInput): RouteResult {
@@ -36,9 +46,5 @@ export function calculateQuote(input: QuoteInput, route: RouteResult): QuoteResu
   return {
     route,
     estimate,
-    base,
-    volumeFee,
-    collateralFee,
-    riskFee,
   };
 }

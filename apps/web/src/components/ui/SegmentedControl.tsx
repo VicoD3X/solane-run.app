@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 type SegmentedControlProps<T extends string> = {
   label: string;
   value: T;
@@ -11,10 +13,17 @@ export function SegmentedControl<T extends string>({
   options,
   onChange,
 }: SegmentedControlProps<T>) {
+  const activeIndex = Math.max(0, options.findIndex((option) => option.value === value));
+  const trackStyle = {
+    "--segmented-index": activeIndex,
+    "--segmented-count": options.length,
+  } as CSSProperties;
+
   return (
     <fieldset className="segmented">
       <legend>{label}</legend>
-      <div className="segmented-track">
+      <div className="segmented-track" style={trackStyle}>
+        <span className="segmented-thumb" aria-hidden="true" />
         {options.map((option) => (
           <button
             aria-pressed={option.value === value}

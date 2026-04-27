@@ -16,11 +16,14 @@ export type QuoteInput = {
   pickup: SolarSystem | null;
   destination: SolarSystem | null;
   size: CargoSize;
+  speed: RunSpeed;
   volume: number;
   collateral: number;
 };
 
 export type CargoSize = "small" | "medium" | "freighter";
+
+export type RunSpeed = "normal" | "rush";
 
 export type RouteSystem = {
   id: number;
@@ -40,8 +43,4 @@ export type RouteResult = {
 export type QuoteResult = {
   route: RouteResult;
   estimate: number;
-  base: number;
-  volumeFee: number;
-  collateralFee: number;
-  riskFee: number;
 };

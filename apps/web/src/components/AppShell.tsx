@@ -39,6 +39,12 @@ export function AppShell({ accentColor = "#19a8ff", children, destinationColor =
             <Calculator size={17} />
             Calculator
           </a>
+          <span aria-hidden="true" className="nav-separator" />
+          <span className="nav-action nav-action-disabled" aria-disabled="true">
+            <DiscordMark />
+            Discord Server
+          </span>
+          <span aria-hidden="true" className="nav-separator" />
           <a className="nav-action" href="#route">
             <Activity size={17} />
             Route Intel
@@ -47,6 +53,13 @@ export function AppShell({ accentColor = "#19a8ff", children, destinationColor =
 
         <div className="topbar-status">
           <StatusBadge>BETA</StatusBadge>
+          <div className="service-status" aria-label="Service Status Active">
+            <span className="status-pulse" aria-hidden="true" />
+            <div>
+              <strong>Service Status</strong>
+              <span>Active</span>
+            </div>
+          </div>
           <div className={`signal ${healthy ? "signal-online" : "signal-offline"}`}>
             <RadioTower size={16} />
             <div>
@@ -62,6 +75,21 @@ export function AppShell({ accentColor = "#19a8ff", children, destinationColor =
 
       <main>{children}</main>
     </div>
+  );
+}
+
+function DiscordMark() {
+  return (
+    <svg aria-hidden="true" className="discord-mark" fill="none" viewBox="0 0 24 24">
+      <path
+        d="M5.8 6.6c1.8-.8 3.9-1.2 6.2-1.2s4.4.4 6.2 1.2c1.5 2.3 2.3 4.9 2.4 7.8-1.9 1.5-3.8 2.3-5.8 2.6l-.9-1.4c1-.2 1.9-.6 2.7-1.2-.6.3-1.3.5-2 .7-.9.2-1.8.3-2.7.3s-1.8-.1-2.7-.3c-.7-.2-1.4-.4-2-.7.8.6 1.7 1 2.7 1.2L9 17c-2-.3-3.9-1.1-5.8-2.6.1-2.9.9-5.5 2.6-7.8Z"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+      <path d="M9.2 11.7h.1M14.8 11.7h.1" stroke="currentColor" strokeLinecap="round" strokeWidth="3.1" />
+    </svg>
   );
 }
 

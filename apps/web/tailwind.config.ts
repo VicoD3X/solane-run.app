@@ -5,9 +5,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ["Space Grotesk", "Rajdhani", "sans-serif"],
-        sans: ["Space Grotesk", "sans-serif"],
-        mono: ["IBM Plex Mono", "monospace"],
+        display: ["Tomorrow", "system-ui", "sans-serif"],
+        sans: ["Tomorrow", "system-ui", "sans-serif"],
+        mono: ["Tomorrow", "ui-monospace", "monospace"],
       },
       colors: {
         void: "#02060d",
