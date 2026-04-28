@@ -514,16 +514,17 @@ main {
   display: flex;
   flex-direction: column;
   padding-top: 20px;
+  gap: 18px;
 }
 
 .form-panel > .field {
-  margin-top: 14px;
+  margin-top: 0;
 }
 
 .system-row {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: 12px;
   align-items: stretch;
 }
 
@@ -885,8 +886,8 @@ main {
 
 .quote-input-reserve {
   flex: 1;
-  min-height: 210px;
-  margin-top: 22px;
+  min-height: 160px;
+  margin-top: auto;
 }
 
 .segmented {
@@ -898,7 +899,7 @@ main {
 .size-slot {
   position: relative;
   min-height: 78px;
-  margin-top: 18px;
+  margin-top: 0;
 }
 
 .size-placeholder,
@@ -1049,7 +1050,7 @@ main {
 .speed-toggle {
   display: grid;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 0;
 }
 
 .speed-toggle-label {
@@ -1271,7 +1272,7 @@ main {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin-top: 12px;
 }
@@ -1339,6 +1340,10 @@ main {
   --traffic-color: #56b6c6;
 }
 
+.road-traffic-moderate {
+  --traffic-color: #b5c85a;
+}
+
 .road-traffic-busy {
   --traffic-color: #f4b24f;
 }
@@ -1370,6 +1375,27 @@ main {
 
 .road-acceptance-syncing {
   --traffic-color: #a855f7;
+}
+
+.road-risk-nominal {
+  --traffic-color: #6fcf97;
+}
+
+.road-risk-watched {
+  --traffic-color: #b5c85a;
+}
+
+.road-risk-hot {
+  --traffic-color: #f4b24f;
+}
+
+.road-risk-flashpoint,
+.road-risk-restricted {
+  --traffic-color: #f45b26;
+}
+
+.road-risk-unavailable {
+  --traffic-color: #8393a3;
 }
 
 .road-overview-strip {
@@ -2464,6 +2490,7 @@ main {
 
   .form-panel {
     min-height: 0;
+    gap: 14px;
     overflow: auto;
     scrollbar-gutter: stable;
   }

@@ -154,18 +154,6 @@ Copyright 2026 Victor A. All rights reserved.
 
 This repository is public for visibility and review, but it is not open source under a permissive license. Copying, redistribution, hosting, modification, or commercial use requires prior written permission.
 
-## Deployment Direction
-
-The public repository builds the frontend container only. Production deployment will pair this web app with the private Solane Run API on the Hetzner VPS. Domain, TLS, runtime secrets, API deployment, and VPS-specific hardening are intentionally left for the private deployment phase.
-
-## Roadmap
-
-- Stabilize freight pricing formulas
-- Expand calculator rules around service classes through the private API
-- Promote Playwright smoke checks into a full E2E suite
-- Add production frontend Docker profiles for Hetzner
-- Keep the app English-only and API-contract-first
-
 ## Disclaimer
 
 Solane Run is an independent EVE Online logistics tool. It is not affiliated with or endorsed by CCP Games.

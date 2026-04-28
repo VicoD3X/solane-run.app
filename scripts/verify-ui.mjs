@@ -142,8 +142,10 @@ try {
     await expect(desktop.getByText("Total jumps")).toBeVisible();
     await expect(desktop.getByText("Route Traffic")).toBeVisible();
     await expect(desktop.getByText("Contract Acceptance")).toBeVisible();
+    await expect(desktop.getByText("Route Risk")).toBeVisible();
     await expect(desktop.getByText(/Corp queue (synced|syncing)/i)).toBeVisible();
     await expect(desktop.locator(".road-intel-card").getByText(/Express|Fast|Normal|Slower|Extended|Syncing/)).toBeVisible();
+    await expect(desktop.locator(".road-intel-card").getByText(/Nominal|Watched|Hot|Flashpoint|Restricted|Unavailable/)).toBeVisible();
     await expect(desktop.getByText("Security bands")).toBeVisible();
     await expect(desktop.locator(".road-intel-card small").filter({ hasText: /jumps last hour/i })).toBeVisible();
     await expect(desktop.locator(".road-system-cell").first()).toBeVisible({ timeout: 15000 });

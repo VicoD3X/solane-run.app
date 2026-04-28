@@ -8,6 +8,7 @@ type RouteResponse = {
   systems: number[];
   routeSystems: RouteResult["routeSystems"];
   routeTraffic?: RouteResult["routeTraffic"];
+  routeRisk?: RouteResult["routeRisk"];
   jumps: number;
 };
 
@@ -48,6 +49,7 @@ export async function fetchEsiRoute(originId: number, destinationId: number): Pr
         : sanitizePositiveInteger(route.routeTraffic.totalShipJumpsLastHour),
       totalSystems: sanitizePositiveInteger(route.routeTraffic.totalSystems),
     } : null,
+    routeRisk: normalizeRouteRisk(route.routeRisk),
     jumps: sanitizePositiveInteger(route.jumps),
   };
 }
@@ -198,6 +200,9 @@ function normalizeRouteTrafficLevel(value: unknown): Pick<NonNullable<RouteResul
   if (value === "active") {
     return { label: "Active", level: "active" };
   }
+  if (value === "moderate") {
+    return { label: "Moderate", level: "moderate" };
+  }
   if (value === "busy") {
     return { label: "Busy", level: "busy" };
   }
@@ -205,6 +210,66 @@ function normalizeRouteTrafficLevel(value: unknown): Pick<NonNullable<RouteResul
     return { label: "Heavy", level: "heavy" };
   }
   return { label: "Unavailable", level: "unavailable" };
+}
+
+function normalizeRouteRisk(value: unknown): RouteResult["routeRisk"] {
+  if (!value || !isRecord(value)) {
+    return null;
+  }
+  const riskLevel = normalizeRouteRiskLevel(value.level);
+  const affectedSystems = Array.isArray(value.affectedSystems)
+    ? value.affectedSystems.map((system) => {
+        const item = isRecord(system) ? system : {};
+        return {
+          id: sanitizePositiveInteger(item.id),
+          name: sanitizeApiText(item.name),
+        };
+      }).filter((system) => system.id > 0 && system.name.length > 0)
+    : [];
+
+  return {
+    affectedSystems,
+    confidence: normalizeRouteRiskConfidence(value.confidence),
+    isBlocking: Boolean(value.isBlocking),
+    label: riskLevel.label,
+    lastSyncedAt: typeof value.lastSyncedAt === "string" ? sanitizeApiText(value.lastSyncedAt) : null,
+    level: riskLevel.level,
+    reason: typeof value.reason === "string" ? sanitizeApiText(value.reason) : null,
+    trend: normalizeRouteRiskTrend(value.trend),
+  };
+}
+
+function normalizeRouteRiskLevel(value: unknown): Pick<NonNullable<RouteResult["routeRisk"]>, "label" | "level"> {
+  if (value === "nominal") {
+    return { label: "Nominal", level: "nominal" };
+  }
+  if (value === "watched") {
+    return { label: "Watched", level: "watched" };
+  }
+  if (value === "hot") {
+    return { label: "Hot", level: "hot" };
+  }
+  if (value === "flashpoint") {
+    return { label: "Flashpoint", level: "flashpoint" };
+  }
+  if (value === "restricted") {
+    return { label: "Restricted", level: "restricted" };
+  }
+  return { label: "Unavailable", level: "unavailable" };
+}
+
+function normalizeRouteRiskConfidence(value: unknown): NonNullable<RouteResult["routeRisk"]>["confidence"] {
+  if (value === "live" || value === "partial" || value === "calibrating" || value === "unavailable") {
+    return value;
+  }
+  return "unavailable";
+}
+
+function normalizeRouteRiskTrend(value: unknown): NonNullable<RouteResult["routeRisk"]>["trend"] {
+  if (value === "stable" || value === "recurrent" || value === "volatile" || value === "unavailable") {
+    return value;
+  }
+  return null;
 }
 
 function normalizeContractAcceptanceLevel(value: unknown): Pick<ContractAcceptanceSummary, "label" | "level"> {
@@ -236,6 +301,7 @@ function normalizeQuoteValidation(value: unknown): QuoteValidation {
     allowedSizes,
     blockedReason: typeof validation.blockedReason === "string" ? sanitizeApiText(validation.blockedReason) : null,
     maxCollateral: sanitizePositiveInteger(validation.maxCollateral, 5_000_000_000),
+    risk: normalizeRouteRisk(validation.risk),
     selectedSizeValid: Boolean(validation.selectedSizeValid),
     valid: Boolean(validation.valid),
   };

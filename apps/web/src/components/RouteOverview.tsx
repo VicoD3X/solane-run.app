@@ -1,10 +1,11 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Clock3, Radar, Shield, Waypoints } from "lucide-react";
+import { Clock3, Radar, Shield, ShieldAlert, Waypoints } from "lucide-react";
 
 import type {
   ContractAcceptanceSummary,
   QuoteInput,
   RouteResult,
+  RouteRiskSummary,
   RouteSystem,
   RouteTrafficSummary,
   SolarSystem,
@@ -22,6 +23,7 @@ const fallbackColor = "#8393a3";
 export function RouteOverview({ acceptance, closing = false, input, route }: RouteOverviewProps) {
   const systems = route.routeSystems.length > 0 ? route.routeSystems : fallbackSystems(input);
   const routeTraffic = route.routeTraffic ?? routeTrafficFromSystems(systems);
+  const routeRisk = route.routeRisk ?? fallbackRouteRisk();
   const routeLabel = input.pickup && input.destination
     ? `${input.pickup.name} - ${input.destination.name}`
     : "Awaiting endpoints";
@@ -59,6 +61,13 @@ export function RouteOverview({ acceptance, closing = false, input, route }: Rou
           tone={`road-acceptance-${acceptance.level}`}
           label="Contract Acceptance"
           value={acceptance.label}
+        />
+        <RoadIntelMetric
+          detail={riskDetail(routeRisk)}
+          icon={<ShieldAlert size={15} />}
+          tone={`road-risk-${routeRisk.level}`}
+          label="Route Risk"
+          value={routeRisk.label}
         />
       </div>
 
@@ -222,13 +231,44 @@ function trafficLevel(totalShipJumpsLastHour: number): Pick<RouteTrafficSummary,
   if (totalShipJumpsLastHour < 1_000) {
     return { label: "Clear", level: "clear" };
   }
-  if (totalShipJumpsLastHour < 6_000) {
+  if (totalShipJumpsLastHour < 7_000) {
     return { label: "Active", level: "active" };
+  }
+  if (totalShipJumpsLastHour < 12_000) {
+    return { label: "Moderate", level: "moderate" };
   }
   if (totalShipJumpsLastHour < 20_100) {
     return { label: "Busy", level: "busy" };
   }
   return { label: "Heavy", level: "heavy" };
+}
+
+function fallbackRouteRisk(): RouteRiskSummary {
+  return {
+    affectedSystems: [],
+    confidence: "unavailable",
+    isBlocking: false,
+    label: "Unavailable",
+    lastSyncedAt: null,
+    level: "unavailable",
+    reason: "Risk telemetry unavailable.",
+    trend: "unavailable",
+  };
+}
+
+function riskDetail(risk: RouteRiskSummary) {
+  if (risk.affectedSystems.length > 0) {
+    const names = risk.affectedSystems.slice(0, 3).map((system) => system.name).join(", ");
+    const suffix = risk.affectedSystems.length > 3 ? " +" : "";
+    return `${names}${suffix} - ${risk.confidence}`;
+  }
+  if (risk.trend && risk.trend !== "stable" && risk.trend !== "unavailable") {
+    return `${risk.trend} baseline - ${risk.confidence}`;
+  }
+  if (risk.reason) {
+    return `${risk.reason} - ${risk.confidence}`;
+  }
+  return risk.confidence;
 }
 
 function legendItems(systems: RouteSystem[]) {

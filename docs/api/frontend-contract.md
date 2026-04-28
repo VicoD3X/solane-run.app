@@ -106,14 +106,26 @@ Expected shape:
     "knownSystems": 3,
     "totalSystems": 3,
     "coverage": 1,
-    "level": "busy",
-    "label": "Busy"
+    "level": "moderate",
+    "label": "Moderate"
+  },
+  "routeRisk": {
+    "level": "nominal",
+    "label": "Nominal",
+    "isBlocking": false,
+    "reason": "No elevated PVP activity detected.",
+    "affectedSystems": [],
+    "lastSyncedAt": "2026-04-27T07:45:00Z",
+    "confidence": "calibrating",
+    "trend": "stable"
   },
   "jumps": 2
 }
 ```
 
 `shipJumpsLastHour` may be `null` when traffic data is unavailable. `routeTraffic` may report `Unavailable` and should not block the route display.
+
+`routeRisk` is a display-safe Solane Run risk signal. `Restricted` may block the quote, while smart PVP risk levels can be shown without exposing internal scoring rules. `trend` is optional and may be `stable`, `recurrent`, `volatile`, or `unavailable`.
 
 ## Contract Acceptance
 
@@ -176,7 +188,17 @@ Expected response shape:
   "allowedSizes": ["small", "medium", "freighter"],
   "selectedSizeValid": true,
   "blockedReason": null,
-  "maxCollateral": 5000000000
+  "maxCollateral": 5000000000,
+  "risk": {
+    "level": "nominal",
+    "label": "Nominal",
+    "isBlocking": false,
+    "reason": "No restricted systems selected.",
+    "affectedSystems": [],
+    "lastSyncedAt": null,
+    "confidence": "live",
+    "trend": "stable"
+  }
 }
 ```
 
@@ -217,11 +239,23 @@ Expected response shape:
   "currency": "ISK",
   "pricingMode": "per_jump",
   "pricingLabel": "Normal per-jump rate",
-  "routeJumps": 9
+  "routeJumps": 9,
+  "risk": {
+    "level": "watched",
+    "label": "Watched",
+    "isBlocking": false,
+    "reason": "Light PVP signal detected on route.",
+    "affectedSystems": [{ "id": 30003504, "name": "Niarja" }],
+    "lastSyncedAt": "2026-04-27T07:45:00Z",
+    "confidence": "calibrating",
+    "trend": "recurrent"
+  }
 }
 ```
 
 When pricing is unavailable or the selected speed is not supported, `valid` is `false`, `reward` is `0`, and `blockedReason` contains a display-safe message. The frontend must not duplicate or publish pricing formulas.
+
+When `risk.isBlocking` is `true`, the frontend must display the blocked state directly and must not try to bypass it locally.
 
 ## Future Private Endpoints
 

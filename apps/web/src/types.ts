@@ -31,6 +31,7 @@ export type QuoteValidation = {
   selectedSizeValid: boolean;
   blockedReason: string | null;
   maxCollateral: number;
+  risk?: RouteRiskSummary | null;
 };
 
 export type PricingMode = "fixed" | "per_jump" | "blocked";
@@ -57,8 +58,29 @@ export type RouteTrafficSummary = {
   knownSystems: number;
   totalSystems: number;
   coverage: number;
-  level: "clear" | "active" | "busy" | "heavy" | "unavailable";
-  label: "Clear" | "Active" | "Busy" | "Heavy" | "Unavailable";
+  level: "clear" | "active" | "moderate" | "busy" | "heavy" | "unavailable";
+  label: "Clear" | "Active" | "Moderate" | "Busy" | "Heavy" | "Unavailable";
+};
+
+export type RouteRiskLevel = "nominal" | "watched" | "hot" | "flashpoint" | "restricted" | "unavailable";
+
+export type RouteRiskConfidence = "live" | "partial" | "calibrating" | "unavailable";
+export type RouteRiskTrend = "stable" | "recurrent" | "volatile" | "unavailable";
+
+export type RouteRiskSystem = {
+  id: number;
+  name: string;
+};
+
+export type RouteRiskSummary = {
+  level: RouteRiskLevel;
+  label: "Nominal" | "Watched" | "Hot" | "Flashpoint" | "Restricted" | "Unavailable";
+  isBlocking: boolean;
+  reason: string | null;
+  affectedSystems: RouteRiskSystem[];
+  lastSyncedAt: string | null;
+  confidence: RouteRiskConfidence;
+  trend?: RouteRiskTrend | null;
 };
 
 export type ContractAcceptanceLevel = "express" | "fast" | "normal" | "slower" | "extended" | "syncing";
@@ -75,6 +97,7 @@ export type RouteResult = {
   systems: number[];
   routeSystems: RouteSystem[];
   routeTraffic?: RouteTrafficSummary | null;
+  routeRisk?: RouteRiskSummary | null;
   jumps: number;
   source: "esi" | "local";
 };
