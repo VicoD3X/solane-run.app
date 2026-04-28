@@ -81,51 +81,75 @@ The Caddy container must be attached to the `solane-run` Docker network so it ca
 
 The complete Caddy config is available in `infra/caddy/Caddyfile.solane-run`.
 
-## Release ZIP
+## Reliable VPS Deploy
 
-Create the local release archive:
-
-```powershell
-npm run export:zip
-```
-
-The archive is written to:
-
-```text
-D:\PROJECT\DEPLOY\Solane Run.zip
-```
-
-Upload it later to:
-
-```text
-/srv/solane-run/releases/Solane Run.zip
-```
-
-The ZIP excludes local env files, Git metadata, dependencies, build output, logs, and caches.
-
-## One-command VPS Deploy
-
-Use the deployment script for normal releases:
+Normal releases must use the one-command deployment script from this frontend repository:
 
 ```powershell
 npm run deploy:vps
 ```
 
-The script:
+This script deploys both repositories:
 
-- refuses dirty Git repositories by default;
-- runs frontend checks and API checks;
-- creates `tar.gz` archives from Git `HEAD`;
-- uploads both frontend and API to the VPS;
-- uses a server-side deployment lock;
-- creates a backup under `/srv/solane-run/backups`;
-- extracts into `.new` directories, then swaps atomically;
-- rebuilds API, web, and the Solane-owned Caddy edge;
-- verifies local health and public HTTPS endpoints;
-- attempts rollback if the server-side deployment fails.
+```text
+Frontend: D:\PROJECT\Solane Run
+API:      D:\PROJECT\solane-api
+```
 
-If the API repository is not at `D:\PROJECT\solane-api`, pass the path explicitly:
+The API path can be overridden when needed:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/deploy-vps.ps1 -ApiRepoPath "D:\PROJECT\solane-api"
+```
+
+Do not deploy by manually copying ZIP files unless debugging a broken deployment script.
+
+The script:
+
+- refuses dirty frontend/API Git repositories by default;
+- checks SSH access, Docker and Docker Compose on the VPS;
+- runs frontend checks: `lint:web`, `build:web`, `security:web`, `w3c:web`, `verify-ui`, web compose config, Caddy compose config;
+- runs API checks: `pytest`, `compileall`, `pip check`, API compose config;
+- creates `tar.gz` archives from Git `HEAD`, not Windows ZIP files;
+- uploads both archives and a temporary server-side deploy script to `/tmp`;
+- creates a server-side deployment lock at `/srv/solane-run/deploy.lock`;
+- backs up `/srv/solane-run/repo` to `/srv/solane-run/backups/repo-*.tgz`;
+- extracts to `/srv/solane-run/repo/web.new` and `/srv/solane-run/repo/api.new`;
+- swaps `.new` into `web` and `api`, keeping `.previous` for rollback;
+- rebuilds API, web, and Solane-owned Caddy;
+- verifies `http://127.0.0.1:8001/health`, `http://127.0.0.1:8080`, `https://solane-run.app`, and `https://solane-run.app/api/eve/status`;
+- attempts rollback automatically if the server-side deployment fails after the swap begins;
+- keeps only the latest backup/release history window.
+
+Use `-SkipChecks` only for emergency redeploys after the exact same commit has already passed locally:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/deploy-vps.ps1 -SkipChecks
+```
+
+Use `-AllowDirty` only for temporary server experiments. Normal production pushes must be committed first.
+
+## What Not To Do
+
+- Do not manually edit `/srv/solane-run/repo/web` or `/srv/solane-run/repo/api`.
+- Do not manually run `docker compose up --build` on only one service for a normal release.
+- Do not copy `D:\PROJECT\DEPLOY\*.zip` for standard deployment; ZIP export remains only a portable artifact.
+- Do not place secrets in either repository. Server env stays in `/srv/solane-run/shared/solane-run.env`.
+- Do not start another public reverse proxy on `80/443`; Solane-owned Caddy already owns those ports.
+
+## Manual Verification
+
+After `npm run deploy:vps`, these checks should pass:
+
+```powershell
+curl.exe -I https://solane-run.app
+curl.exe -sS https://solane-run.app/api/eve/status
+```
+
+On the VPS:
+
+```bash
+docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+curl -fsS http://127.0.0.1:8001/health
+curl -fsSI http://127.0.0.1:8080
 ```
