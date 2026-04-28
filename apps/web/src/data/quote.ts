@@ -1,7 +1,10 @@
-import type { CargoSize, QuoteInput, QuoteResult, RouteResult, RunSpeed, ServiceType } from "../types";
+import type { CargoSize, QuoteInput, QuotePricing, QuoteResult, QuoteValidation, RouteResult, RunSpeed, ServiceType } from "../types";
 
 export const DEFAULT_COLLATERAL_VALUE = 5_000_000_000;
 export const MAX_COLLATERAL_VALUE = 5_000_000_000;
+export const LOWSEC_COLLATERAL_VALUE = 3_000_000_000;
+export const POCHVEN_COLLATERAL_VALUE = 3_000_000_000;
+export const HIGHSEC_FREIGHTER_COLLATERAL_VALUE = 3_500_000_000;
 
 export type CargoSizeOption = {
   disabled?: boolean;
@@ -22,8 +25,14 @@ export const cargoSizes: CargoSizeOption[] = [
   { label: "800,000 m3", value: "freighter", volume: 800_000 },
 ];
 
-const collateralLimitsByService: Partial<Record<ServiceType, Partial<Record<CargoSize, number>>>> = {};
-const cargoSizesByService: Partial<Record<ServiceType, CargoSize[]>> = {};
+const cargoSizeOrder: CargoSize[] = ["small", "medium", "freighter"];
+const cargoSizesByService: Record<ServiceType, CargoSize[]> = {
+  HighSec: ["small", "medium", "freighter"],
+  LowSec: ["small"],
+  Pochven: ["small", "medium"],
+  Thera: ["small", "medium"],
+  Zarzakh: ["small", "medium"],
+};
 
 export const runSpeeds: { label: string; summaryLabel: string; value: RunSpeed }[] = [
   { label: "NORMAL", summaryLabel: "Normal", value: "normal" },
@@ -42,29 +51,11 @@ export function labelForSpeed(speed: RunSpeed) {
   return runSpeeds.find((option) => option.value === speed)?.summaryLabel ?? runSpeeds[0].summaryLabel;
 }
 
-export function availableCargoSizesForQuote(input: Pick<QuoteInput, "pickup" | "destination">): CargoSizeOption[] {
-  const services = selectedServices(input);
-  if (services.length === 0) {
-    return cargoSizes;
-  }
-
-  const allowedSizes = services.reduce<Set<CargoSize> | null>((currentAllowed, service) => {
-    const serviceSizes = cargoSizesByService[service];
-    if (!serviceSizes) {
-      return currentAllowed;
-    }
-
-    const nextAllowed = new Set(serviceSizes);
-    if (!currentAllowed) {
-      return nextAllowed;
-    }
-
-    return new Set([...currentAllowed].filter((size) => nextAllowed.has(size)));
-  }, null);
-
-  if (!allowedSizes) {
-    return cargoSizes;
-  }
+export function availableCargoSizesForQuote(
+  input: Pick<QuoteInput, "pickup" | "destination" | "size" | "collateral">,
+  validation = fallbackQuoteValidation(input),
+): CargoSizeOption[] {
+  const allowedSizes = new Set(validation.allowedSizes);
 
   return cargoSizes.map((option) => ({
     ...option,
@@ -72,16 +63,43 @@ export function availableCargoSizesForQuote(input: Pick<QuoteInput, "pickup" | "
   }));
 }
 
-export function collateralLimitForQuote(input: Pick<QuoteInput, "pickup" | "destination" | "size">): number {
-  const configuredLimits = selectedServices(input)
-    .map((service) => collateralLimitsByService[service]?.[input.size])
-    .filter((limit): limit is number => typeof limit === "number");
+export function fallbackQuoteValidation(
+  input: Pick<QuoteInput, "pickup" | "destination" | "size" | "collateral">,
+): QuoteValidation {
+  const allowedSizes = allowedCargoSizeValues(input);
+  const selectedSizeValid = allowedSizes.includes(input.size);
+  const maxCollateral = fallbackCollateralLimit(input);
+  const collateralValid = input.collateral <= maxCollateral;
 
-  return Math.min(MAX_COLLATERAL_VALUE, ...configuredLimits);
+  let blockedReason: string | null = null;
+  if (!selectedSizeValid) {
+    blockedReason = "Selected cargo size is not available for this route.";
+  } else if (!collateralValid) {
+    blockedReason = `Collateral limit exceeded. Maximum allowed is ${maxCollateral.toLocaleString("en-US")} ISK.`;
+  }
+
+  return {
+    allowedSizes,
+    blockedReason,
+    maxCollateral,
+    selectedSizeValid,
+    valid: selectedSizeValid && collateralValid,
+  };
 }
 
-export function validateCollateral(input: QuoteInput): CollateralValidation {
-  const limit = collateralLimitForQuote(input);
+export function largestAllowedCargoSize(validation: QuoteValidation): CargoSize {
+  return [...cargoSizeOrder].reverse().find((size) => validation.allowedSizes.includes(size)) ?? cargoSizes[0].value;
+}
+
+export function collateralLimitForQuote(
+  input: Pick<QuoteInput, "pickup" | "destination" | "size" | "collateral">,
+  validation = fallbackQuoteValidation(input),
+): number {
+  return Math.min(MAX_COLLATERAL_VALUE, validation.maxCollateral);
+}
+
+export function validateCollateral(input: QuoteInput, validation = fallbackQuoteValidation(input)): CollateralValidation {
+  const limit = collateralLimitForQuote(input, validation);
   const valid = input.collateral <= limit;
 
   return {
@@ -97,6 +115,46 @@ function selectedServices(input: Pick<QuoteInput, "pickup" | "destination">): Se
   );
 }
 
+function allowedCargoSizeValues(input: Pick<QuoteInput, "pickup" | "destination">): CargoSize[] {
+  const services = selectedServices(input);
+  if (services.length === 0) {
+    return cargoSizeOrder;
+  }
+
+  const allowedSizes = services.reduce<Set<CargoSize> | null>((currentAllowed, service) => {
+    const nextAllowed = new Set(cargoSizesByService[service]);
+    if (!currentAllowed) {
+      return nextAllowed;
+    }
+
+    return new Set([...currentAllowed].filter((size) => nextAllowed.has(size)));
+  }, null);
+
+  return cargoSizeOrder.filter((size) => allowedSizes?.has(size));
+}
+
+function fallbackCollateralLimit(input: Pick<QuoteInput, "pickup" | "destination" | "size">): number {
+  const services = selectedServices(input);
+  if (services.length === 0) {
+    return input.size === "freighter" ? HIGHSEC_FREIGHTER_COLLATERAL_VALUE : MAX_COLLATERAL_VALUE;
+  }
+
+  return Math.min(...services.map((service) => fallbackCollateralLimitForService(service, input.size)));
+}
+
+function fallbackCollateralLimitForService(service: ServiceType, size: CargoSize): number {
+  if (service === "LowSec") {
+    return LOWSEC_COLLATERAL_VALUE;
+  }
+  if (service === "Pochven") {
+    return POCHVEN_COLLATERAL_VALUE;
+  }
+  if (service === "Thera" || service === "Zarzakh") {
+    return MAX_COLLATERAL_VALUE;
+  }
+  return size === "freighter" ? HIGHSEC_FREIGHTER_COLLATERAL_VALUE : MAX_COLLATERAL_VALUE;
+}
+
 export function fallbackRoute(input: QuoteInput): RouteResult {
   return {
     source: "local",
@@ -106,25 +164,49 @@ export function fallbackRoute(input: QuoteInput): RouteResult {
   };
 }
 
-export function calculateQuote(input: QuoteInput, route: RouteResult): QuoteResult {
-  const collateralValidation = validateCollateral(input);
-  if (!collateralValidation.valid) {
+export function calculateQuote(input: QuoteInput, route: RouteResult, validation = fallbackQuoteValidation(input)): QuoteResult {
+  if (!validation.valid) {
     return {
       route,
       estimate: 0,
-      blockedReason: collateralValidation.message ?? "Quote blocked by collateral limit.",
+      blockedReason: validation.blockedReason ?? "Quote blocked by Solane Engine guardrails.",
+      currency: "ISK",
+      pricingLabel: "Blocked",
+      pricingMode: "blocked",
+      source: "local",
     };
   }
 
-  const hasPricedRoute = Boolean(input.pickup && input.destination && route.jumps > 0);
-  const base = hasPricedRoute ? 42_000_000 + route.jumps * 2_200_000 : 0;
-  const volumeFee = hasPricedRoute ? input.volume * 780 : 0;
-  const collateralFee = hasPricedRoute ? input.collateral * 0.012 : 0;
-  const riskFee = 0;
-  const estimate = base + volumeFee + collateralFee + riskFee;
+  if (input.pickup && input.destination) {
+    return {
+      route,
+      estimate: 0,
+      blockedReason: "Pricing sync unavailable.",
+      currency: "ISK",
+      pricingLabel: "Blocked",
+      pricingMode: "blocked",
+      source: "local",
+    };
+  }
 
   return {
     route,
-    estimate,
+    estimate: 0,
+    currency: "ISK",
+    pricingLabel: "Awaiting endpoints",
+    pricingMode: "blocked",
+    source: "local",
+  };
+}
+
+export function quoteFromPricing(route: RouteResult, pricing: QuotePricing): QuoteResult {
+  return {
+    route,
+    estimate: pricing.reward,
+    blockedReason: pricing.blockedReason ?? undefined,
+    currency: pricing.currency,
+    pricingLabel: pricing.pricingLabel,
+    pricingMode: pricing.pricingMode,
+    source: "api",
   };
 }

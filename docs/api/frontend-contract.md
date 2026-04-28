@@ -149,6 +149,80 @@ When private ESI is not configured or unavailable, the API should return:
 
 The frontend must not infer or publish the underlying queue formula.
 
+## Quote Validation
+
+```http
+POST /api/solane/quote/validate
+```
+
+The private API owns Solane Engine guardrails for route eligibility, cargo size availability, collateral limits, and future service rules. The public frontend may use the response to disable impossible UI options, but must not treat its local fallback as authoritative.
+
+Expected request shape:
+
+```json
+{
+  "pickupSystemId": 30000142,
+  "destinationSystemId": 30002187,
+  "size": "medium",
+  "collateral": 5000000000
+}
+```
+
+Expected response shape:
+
+```json
+{
+  "valid": true,
+  "allowedSizes": ["small", "medium", "freighter"],
+  "selectedSizeValid": true,
+  "blockedReason": null,
+  "maxCollateral": 5000000000
+}
+```
+
+`allowedSizes` uses the public UI keys `small`, `medium`, and `freighter`. `blockedReason` is a display-safe summary only; detailed service rules and pricing logic remain private.
+
+`maxCollateral` is dynamic and may change after endpoint or size changes. The frontend should render it directly and must not infer the underlying Solane Engine rules.
+
+## Quote Calculation
+
+```http
+POST /api/solane/quote/calculate
+```
+
+The private API owns reward calculation, route-dependent pricing, speed availability, and internal service rules. The frontend must display the returned reward and blocked state directly.
+
+Expected request shape:
+
+```json
+{
+  "pickupSystemId": 30000142,
+  "destinationSystemId": 30002187,
+  "size": "medium",
+  "collateral": 5000000000,
+  "speed": "normal"
+}
+```
+
+Expected response shape:
+
+```json
+{
+  "valid": true,
+  "allowedSizes": ["small", "medium", "freighter"],
+  "selectedSizeValid": true,
+  "blockedReason": null,
+  "maxCollateral": 5000000000,
+  "reward": 13050000,
+  "currency": "ISK",
+  "pricingMode": "per_jump",
+  "pricingLabel": "Normal per-jump rate",
+  "routeJumps": 9
+}
+```
+
+When pricing is unavailable or the selected speed is not supported, `valid` is `false`, `reward` is `0`, and `blockedReason` contains a display-safe message. The frontend must not duplicate or publish pricing formulas.
+
 ## Future Private Endpoints
 
 The following surfaces are expected to move behind private Solane Run endpoints over time:

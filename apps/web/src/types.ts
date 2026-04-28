@@ -25,6 +25,24 @@ export type CargoSize = "small" | "medium" | "freighter";
 
 export type RunSpeed = "normal" | "rush";
 
+export type QuoteValidation = {
+  valid: boolean;
+  allowedSizes: CargoSize[];
+  selectedSizeValid: boolean;
+  blockedReason: string | null;
+  maxCollateral: number;
+};
+
+export type PricingMode = "fixed" | "per_jump" | "blocked";
+
+export type QuotePricing = QuoteValidation & {
+  reward: number;
+  currency: "ISK";
+  pricingMode: PricingMode;
+  pricingLabel: string;
+  routeJumps: number | null;
+};
+
 export type RouteSystem = {
   id: number;
   name: string;
@@ -65,4 +83,8 @@ export type QuoteResult = {
   route: RouteResult;
   estimate: number;
   blockedReason?: string;
+  currency: "ISK";
+  pricingLabel: string;
+  pricingMode: PricingMode;
+  source: "api" | "local";
 };

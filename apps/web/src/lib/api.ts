@@ -1,4 +1,4 @@
-import type { ContractAcceptanceSummary, RouteResult, SolarSystem } from "../types";
+import type { ContractAcceptanceSummary, CargoSize, PricingMode, QuoteInput, QuotePricing, QuoteValidation, RouteResult, SolarSystem } from "../types";
 import { sanitizeApiText, sanitizeFiniteNumber, sanitizeHexColor, sanitizePositiveInteger, sanitizeSystemQuery } from "./guards";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8001";
@@ -68,6 +68,37 @@ export async function fetchContractAcceptance(): Promise<ContractAcceptanceSumma
   };
 }
 
+export async function validateQuote(input: QuoteInput): Promise<QuoteValidation> {
+  if (!input.pickup || !input.destination) {
+    throw new Error("Quote validation requires endpoints.");
+  }
+
+  const validation = await postJson<QuoteValidation>("/api/solane/quote/validate", {
+    collateral: input.collateral,
+    destinationSystemId: input.destination.id,
+    pickupSystemId: input.pickup.id,
+    size: input.size,
+  });
+
+  return normalizeQuoteValidation(validation);
+}
+
+export async function fetchQuoteCalculation(input: QuoteInput): Promise<QuotePricing> {
+  if (!input.pickup || !input.destination) {
+    throw new Error("Quote calculation requires endpoints.");
+  }
+
+  const pricing = await postJson<QuotePricing>("/api/solane/quote/calculate", {
+    collateral: input.collateral,
+    destinationSystemId: input.destination.id,
+    pickupSystemId: input.pickup.id,
+    size: input.size,
+    speed: input.speed,
+  });
+
+  return normalizeQuotePricing(pricing);
+}
+
 async function getJson<T>(path: string): Promise<T> {
   if (!path.startsWith("/") || path.startsWith("//")) {
     throw new Error("Invalid API path.");
@@ -82,6 +113,39 @@ async function getJson<T>(path: string): Promise<T> {
     headers: {
       Accept: "application/json",
     },
+    referrerPolicy: "no-referrer",
+    signal: controller.signal,
+  }).finally(() => window.clearTimeout(timeout));
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    throw new Error("Unexpected API response type.");
+  }
+
+  return response.json() as Promise<T>;
+}
+
+async function postJson<T>(path: string, body: unknown): Promise<T> {
+  if (!path.startsWith("/") || path.startsWith("//")) {
+    throw new Error("Invalid API path.");
+  }
+
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    body: JSON.stringify(body),
+    cache: "no-store",
+    credentials: "omit",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    method: "POST",
     referrerPolicy: "no-referrer",
     signal: controller.signal,
   }).finally(() => window.clearTimeout(timeout));
@@ -160,6 +224,49 @@ function normalizeContractAcceptanceLevel(value: unknown): Pick<ContractAcceptan
     return { label: "Extended", level: "extended" };
   }
   return { label: "Syncing", level: "syncing" };
+}
+
+function normalizeQuoteValidation(value: unknown): QuoteValidation {
+  const validation = isRecord(value) ? value : {};
+  const allowedSizes = Array.isArray(validation.allowedSizes)
+    ? validation.allowedSizes.filter((size): size is CargoSize => isCargoSize(size))
+    : [];
+
+  return {
+    allowedSizes,
+    blockedReason: typeof validation.blockedReason === "string" ? sanitizeApiText(validation.blockedReason) : null,
+    maxCollateral: sanitizePositiveInteger(validation.maxCollateral, 5_000_000_000),
+    selectedSizeValid: Boolean(validation.selectedSizeValid),
+    valid: Boolean(validation.valid),
+  };
+}
+
+function normalizeQuotePricing(value: unknown): QuotePricing {
+  const pricing = isRecord(value) ? value : {};
+  const validation = normalizeQuoteValidation(pricing);
+  const mode = normalizePricingMode(pricing.pricingMode);
+
+  return {
+    ...validation,
+    currency: "ISK",
+    pricingLabel: typeof pricing.pricingLabel === "string" ? sanitizeApiText(pricing.pricingLabel) : "Blocked",
+    pricingMode: mode,
+    reward: sanitizePositiveInteger(pricing.reward),
+    routeJumps: pricing.routeJumps === null || pricing.routeJumps === undefined
+      ? null
+      : sanitizePositiveInteger(pricing.routeJumps),
+  };
+}
+
+function normalizePricingMode(value: unknown): PricingMode {
+  if (value === "fixed" || value === "per_jump" || value === "blocked") {
+    return value;
+  }
+  return "blocked";
+}
+
+function isCargoSize(value: unknown): value is CargoSize {
+  return value === "small" || value === "medium" || value === "freighter";
 }
 
 function normalizeServiceType(value: unknown): SolarSystem["serviceType"] {
