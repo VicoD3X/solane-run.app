@@ -100,26 +100,22 @@ function RouteTrafficReport({
   traffic: RouteTrafficSummary;
 }) {
   return (
-    <div className={`road-intel-card road-route-state road-traffic-report ${tone ?? ""}`}>
-      <div className="road-state-emblem" aria-hidden="true">{icon}</div>
-      <div className="road-state-copy">
-        <span>Traffic</span>
-        <p>Route activity snapshot.</p>
+    <div className={`road-intel-card road-traffic-report ${tone ?? ""}`}>
+      <div className="road-traffic-label">
+        <div className="road-state-emblem" aria-hidden="true">{icon}</div>
+        <div>
+          <span>Traffic</span>
+          <p>Route flow.</p>
+        </div>
       </div>
-      <strong>{traffic.label}</strong>
-      <div className="road-risk-meta" aria-label="Route traffic details">
-        <span>
-          Ship jumps
-          <b>{formatMetric(traffic.totalShipJumpsLastHour)} last hour</b>
-        </span>
-        <span>
-          Ships destroyed
-          <b>{formatMetric(traffic.totalShipKillsLastHour)} last hour</b>
-        </span>
-        <span>
-          Pods destroyed
-          <b>{formatMetric(traffic.totalPodKillsLastHour)} last hour</b>
-        </span>
+      <div className="road-traffic-status">
+        <span aria-hidden="true"></span>
+        <strong>{traffic.label}</strong>
+      </div>
+      <div className="road-traffic-jumps" aria-label="Route ship jumps last hour">
+        <span>Ship jumps</span>
+        <b>{formatMetric(traffic.totalShipJumpsLastHour)}</b>
+        <small>last hour</small>
       </div>
     </div>
   );

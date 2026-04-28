@@ -1453,7 +1453,6 @@ main {
   font-weight: 600;
 }
 
-.road-traffic-report,
 .road-risk-report,
 .road-standard-report {
   grid-column: 1 / -1;
@@ -1551,8 +1550,115 @@ main {
 }
 
 .road-traffic-report {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(154px, auto);
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 9px 12px;
   border-color: color-mix(in srgb, var(--traffic-color) 28%, rgba(133, 188, 225, 0.12));
   border-left-color: color-mix(in srgb, var(--traffic-color) 82%, transparent);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--traffic-color) 9%, transparent), transparent 58%),
+    linear-gradient(180deg, rgba(133, 188, 225, 0.035), rgba(2, 7, 13, 0.2)),
+    rgba(2, 7, 13, 0.34);
+}
+
+.road-traffic-label {
+  display: inline-grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.road-traffic-label .road-state-emblem {
+  grid-row: auto;
+  width: 34px;
+  height: 34px;
+}
+
+.road-traffic-label span {
+  display: block;
+  color: color-mix(in srgb, var(--traffic-color) 74%, #f3f8ff);
+  font-family: var(--font-accent);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.065em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.road-traffic-label p {
+  margin: 3px 0 0;
+  overflow: hidden;
+  color: #d1deea;
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.road-traffic-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: max-content;
+  padding-inline: 10px 14px;
+  border-left: 1px solid rgba(133, 188, 225, 0.18);
+}
+
+.road-traffic-status span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--traffic-color);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--traffic-color) 42%, transparent);
+}
+
+.road-traffic-status strong {
+  color: #eef7ff;
+  font-size: clamp(0.82rem, 1.04vw, 1rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.road-traffic-jumps {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--traffic-color) 22%, rgba(133, 188, 225, 0.11));
+  border-radius: 7px;
+  background: rgba(0, 5, 11, 0.34);
+  padding: 6px 8px;
+  color: #9fb3c4;
+  white-space: nowrap;
+}
+
+.road-traffic-jumps span {
+  color: #9fb3c4;
+  font-size: 0.49rem;
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.road-traffic-jumps b {
+  color: #f2f8ff;
+  font-family: var(--font-main);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.road-traffic-jumps small {
+  color: #b7cad9;
+  font-size: 0.54rem;
+  font-weight: 600;
 }
 
 .road-standard-report strong {

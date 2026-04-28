@@ -146,8 +146,8 @@ try {
     await expect(desktop.getByText("Route Risk")).toHaveCount(0);
     await expect(desktop.getByText("Golden Standard").first()).toBeVisible();
     await expect(desktop.locator(".road-intel-card").getByText(/Ship jumps/i)).toBeVisible();
-    await expect(desktop.locator(".road-intel-card").getByText(/Ships destroyed/i)).toBeVisible();
-    await expect(desktop.locator(".road-intel-card").getByText(/Pods destroyed/i)).toBeVisible();
+    await expect(desktop.locator(".road-intel-card").getByText(/Ships destroyed/i)).toHaveCount(0);
+    await expect(desktop.locator(".road-intel-card").getByText(/Pods destroyed/i)).toHaveCount(0);
     await expect(desktop.locator(".road-intel-card").getByText(/Nominal|Watched|Hot|Flashpoint|Restricted|Unavailable|Verified/).first()).toBeVisible();
     await expect(desktop.getByText("Security", { exact: true })).toBeVisible();
     await expect(desktop.locator(".road-intel-card").getByText(/last hour/i).first()).toBeVisible();
