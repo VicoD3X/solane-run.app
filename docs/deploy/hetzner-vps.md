@@ -102,3 +102,30 @@ Upload it later to:
 ```
 
 The ZIP excludes local env files, Git metadata, dependencies, build output, logs, and caches.
+
+## One-command VPS Deploy
+
+Use the deployment script for normal releases:
+
+```powershell
+npm run deploy:vps
+```
+
+The script:
+
+- refuses dirty Git repositories by default;
+- runs frontend checks and API checks;
+- creates `tar.gz` archives from Git `HEAD`;
+- uploads both frontend and API to the VPS;
+- uses a server-side deployment lock;
+- creates a backup under `/srv/solane-run/backups`;
+- extracts into `.new` directories, then swaps atomically;
+- rebuilds API, web, and the Solane-owned Caddy edge;
+- verifies local health and public HTTPS endpoints;
+- attempts rollback if the server-side deployment fails.
+
+If the API repository is not at `D:\PROJECT\solane-api`, pass the path explicitly:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/deploy-vps.ps1 -ApiRepoPath "D:\PROJECT\solane-api"
+```

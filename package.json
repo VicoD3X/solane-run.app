@@ -13,6 +13,7 @@
     "preview:web": "npm --workspace apps/web run preview",
     "security:web": "node scripts/verify-security.mjs",
     "w3c:web": "npm --workspace apps/web run w3c",
-    "export:zip": "powershell -ExecutionPolicy Bypass -File scripts/export-release-zip.ps1"
+    "export:zip": "powershell -ExecutionPolicy Bypass -File scripts/export-release-zip.ps1",
+    "deploy:vps": "powershell -ExecutionPolicy Bypass -File scripts/deploy-vps.ps1"
   }
 }
