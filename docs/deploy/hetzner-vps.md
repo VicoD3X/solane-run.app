@@ -7,7 +7,7 @@ Solane Run is deployed as a classic website: the calculator is the main public p
 - VPS: Hetzner CPX32 Debian, `clartai-prod-01`
 - Domain: `solane-run.app`
 - IPv4: `178.104.165.186`
-- Public edge: existing Caddy on the VPS
+- Public edge: Solane-owned Caddy on the VPS
 - Frontend container: `solane-web` on the shared Docker network `solane-run`
 
 ## DNS
@@ -35,6 +35,10 @@ Use one shared Solane directory:
 /srv/solane-run
 |-- backups
 |-- cache
+|-- caddy
+|   |-- Caddyfile
+|   |-- config
+|   `-- data
 |-- releases
 |-- repo
 |   |-- api
@@ -61,18 +65,21 @@ The frontend compose joins that network with the alias `solane-web`. The API com
 
 ## Caddy Integration
 
-Do not start a second public reverse proxy on ports `80` and `443`. Add the Solane snippet to the existing Caddy edge config:
+Solane Run now owns the public reverse proxy on ports `80` and `443`. The previous Clartai EX-Calendar stack is stopped and kept on disk only.
 
-```text
-solane-run.app, www.solane-run.app {
-	encode zstd gzip
-	reverse_proxy solane-web:80
-}
+Use:
+
+```bash
+mkdir -p /srv/solane-run/caddy/data /srv/solane-run/caddy/config
+cp infra/caddy/Caddyfile.solane-run /srv/solane-run/caddy/Caddyfile
+cp infra/caddy/docker-compose.yml /srv/solane-run/caddy/docker-compose.yml
+cd /srv/solane-run/caddy
+docker compose up -d
 ```
 
-The complete snippet is available in `infra/caddy/Caddyfile.solane-run`.
+The Caddy container must be attached to the `solane-run` Docker network so it can resolve `solane-web`.
 
-The existing Caddy container must be connected to the `solane-run` Docker network so it can resolve `solane-web`.
+The complete Caddy config is available in `infra/caddy/Caddyfile.solane-run`.
 
 ## Release ZIP
 

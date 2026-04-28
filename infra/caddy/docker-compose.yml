@@ -1,0 +1,26 @@
+name: solane-run-edge
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - type: bind
+        source: ./Caddyfile
+        target: /etc/caddy/Caddyfile
+        read_only: true
+      - type: bind
+        source: ./data
+        target: /data
+      - type: bind
+        source: ./config
+        target: /config
+    networks:
+      - solane-run
+
+networks:
+  solane-run:
+    external: true
