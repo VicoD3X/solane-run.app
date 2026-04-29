@@ -34,7 +34,7 @@ The public repository intentionally contains only the web app and is distributed
 | --- | --- | --- |
 | Freight calculator | Active | Pick Up, Destination, cargo size, free collateral up to 5B ISK, contract review |
 | System catalog | API-backed | Provided by the Solane Run API |
-| Road overview | API-backed | Gate-to-gate route, system security bar, and last-hour traffic tooltips |
+| Road overview | API-backed | Gate-to-gate route, system security bar, route risk, and last-hour traffic tooltips |
 | Tranquility status | API-backed | Player count and EVE time exposed through the Solane Run API |
 | Backend logic | Server-owned | Public ESI adapters, pricing rules, caches, and internal operations are not published here |
 
@@ -71,7 +71,7 @@ The Solane Run API is responsible for:
 
 - public EVE ESI adapters and compatibility handling
 - SDE/system catalog filtering
-- route policy, route traffic, and cache strategy
+- route policy, route traffic, route risk, and cache strategy
 - Solane Run pricing formulas and service rules
 - future account and order workflows, if they return later
 

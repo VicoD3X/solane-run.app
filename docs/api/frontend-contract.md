@@ -130,6 +130,8 @@ Expected shape:
 
 `routeRisk` is a display-safe Solane Run risk signal. `Restricted` may block the quote, while smart PVP risk levels can be shown without exposing internal scoring rules. `trend` is optional and may be `stable`, `recurrent`, `volatile`, or `unavailable`. `routeStandard` is a route comfort label only and never bypasses blocking risk controls. `lowSecShipKillsLastHour` is only populated when LowSec systems on the route are covered by Route Risk telemetry.
 
+The calculator should prefer a blocking risk returned by quote validation/calculation over a non-blocking or unavailable route-only risk. This keeps endpoint-level restrictions visible immediately while the full route overview is still syncing.
+
 ## Route Intel
 
 ```http
@@ -267,7 +269,7 @@ GET /api/solane/contract-acceptance
 POST /api/solane/quote/validate
 ```
 
-The Solane Run API owns Solane Engine guardrails for route eligibility, cargo size availability, collateral limits, and future service rules. The public frontend may use the response to disable impossible UI options, but must not treat its local fallback as authoritative.
+The Solane Run API owns Solane Engine guardrails for route eligibility, cargo size availability, collateral limits, route risk restrictions, and future service rules. The public frontend may use the response to disable impossible UI options, but must not treat its local fallback as authoritative.
 
 Expected request shape:
 
@@ -309,6 +311,8 @@ Expected response shape:
 `allowedSizes` uses the public UI keys `small`, `medium`, and `freighter`. `blockedReason` and `blockedCode` are display-safe summaries only; detailed service rules and pricing logic remain private.
 
 `maxCollateral` is dynamic and may change after endpoint or size changes. The frontend should render it directly and must not infer the underlying Solane Engine rules.
+
+When `risk.isBlocking` is `true`, the frontend should block contract review and downstream quote inputs immediately, while keeping Pick Up and Destination editable so the user can leave the restricted route.
 
 ## Quote Calculation
 
