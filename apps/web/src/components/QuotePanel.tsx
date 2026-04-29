@@ -132,11 +132,7 @@ export function QuotePanel({ input, result, serviceWindow }: QuotePanelProps) {
         />
       </div>
 
-      {isRiskRestricted ? (
-        <p className="quote-context-warning quote-context-warning-danger">
-          Restricted route. Contract review is blocked by Solane risk controls.
-        </p>
-      ) : serviceWindowWarning ? (
+      {!isRiskRestricted && serviceWindowWarning ? (
         <p className="quote-context-warning">
           {serviceWindowWarning}
         </p>

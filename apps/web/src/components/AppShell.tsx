@@ -78,7 +78,15 @@ export function AppShell({
             </div>
           </div>
           <div className={`signal ${healthy ? "signal-online" : "signal-offline"}`}>
-            <RadioTower size={16} />
+            <a
+              aria-label="Open EVE Online server status"
+              className="signal-status-link"
+              href="https://status.eveonline.com/"
+              rel="noreferrer"
+              target="_blank"
+            >
+              <RadioTower size={16} />
+            </a>
             <div>
               <strong>Tranquility</strong>
               <span>

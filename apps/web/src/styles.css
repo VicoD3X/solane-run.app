@@ -401,7 +401,13 @@ strong {
   text-align: left;
 }
 
-.signal svg {
+.signal-status-link {
+  display: inline-flex;
+  color: inherit;
+  text-decoration: none;
+}
+
+.signal-status-link svg {
   box-sizing: content-box;
   width: 18px;
   height: 18px;
@@ -410,6 +416,15 @@ strong {
   background: rgba(var(--service-accent-rgb), 0.07);
   color: var(--plasma);
   padding: 5px;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.signal-status-link:hover svg,
+.signal-status-link:focus-visible svg {
+  border-color: rgba(var(--service-accent-rgb), 0.56);
+  background: rgba(var(--service-accent-rgb), 0.13);
+  color: var(--text);
+  transform: translateY(-1px);
 }
 
 .signal strong,
@@ -430,7 +445,7 @@ strong {
   color: var(--muted);
 }
 
-.signal-offline svg,
+.signal-offline .signal-status-link svg,
 .signal-offline strong {
   color: var(--danger);
 }
@@ -1597,13 +1612,11 @@ main {
   margin: 0;
   margin-top: 5px;
   max-width: 72ch;
-  overflow: hidden;
   color: #d1deea;
   font-size: 0.64rem;
   font-weight: 600;
   line-height: 1.18;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .road-traffic-report > strong,
