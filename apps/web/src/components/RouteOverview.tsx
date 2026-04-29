@@ -13,15 +13,16 @@ import type {
 type RouteOverviewProps = {
   closing?: boolean;
   input: QuoteInput;
+  risk?: RouteRiskSummary | null;
   route: RouteResult;
 };
 
 const fallbackColor = "#8393a3";
 
-export function RouteOverview({ closing = false, input, route }: RouteOverviewProps) {
+export function RouteOverview({ closing = false, input, risk, route }: RouteOverviewProps) {
   const systems = route.routeSystems.length > 0 ? route.routeSystems : fallbackSystems(input);
   const routeTraffic = route.routeTraffic ?? routeTrafficFromSystems(systems);
-  const routeRisk = route.routeRisk ?? fallbackRouteRisk();
+  const routeRisk = risk?.isBlocking ? risk : route.routeRisk ?? risk ?? fallbackRouteRisk();
   const routeLabel = input.pickup && input.destination
     ? `${input.pickup.name} - ${input.destination.name}`
     : "Awaiting endpoints";

@@ -173,6 +173,7 @@ export function calculateQuote(input: QuoteInput, route: RouteResult, validation
     return {
       route,
       estimate: 0,
+      risk: validation.risk ?? route.routeRisk ?? null,
       blockedReason: validation.blockedReason ?? "Quote blocked by Solane Engine guardrails.",
       blockedCode: validation.blockedCode ?? "pricing_unavailable",
       currency: "ISK",
@@ -186,6 +187,7 @@ export function calculateQuote(input: QuoteInput, route: RouteResult, validation
     return {
       route,
       estimate: 0,
+      risk: validation.risk ?? route.routeRisk ?? null,
       blockedReason: "Pricing sync unavailable.",
       blockedCode: "pricing_unavailable",
       currency: "ISK",
@@ -198,6 +200,7 @@ export function calculateQuote(input: QuoteInput, route: RouteResult, validation
   return {
     route,
     estimate: 0,
+    risk: validation.risk ?? route.routeRisk ?? null,
     currency: "ISK",
     pricingLabel: "Awaiting endpoints",
     pricingMode: "blocked",
@@ -209,6 +212,7 @@ export function quoteFromPricing(route: RouteResult, pricing: QuotePricing): Quo
   return {
     route,
     estimate: pricing.reward,
+    risk: pricing.risk ?? route.routeRisk ?? null,
     blockedCode: pricing.blockedCode ?? undefined,
     blockedReason: pricing.blockedReason ?? undefined,
     currency: pricing.currency,

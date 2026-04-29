@@ -127,6 +127,15 @@ function App() {
   const cargoSizeOptions = availableCargoSizesForQuote(input, quoteValidation);
   const collateralValidation = validateCollateral(input, quoteValidation);
   const collateralInvalid = !collateralValidation.valid;
+  const blockingRisk = quote.risk?.isBlocking
+    ? quote.risk
+    : quoteValidation.risk?.isBlocking
+      ? quoteValidation.risk
+      : null;
+  const controlsBlockedByRisk = Boolean(blockingRisk);
+  const riskBlockedReason = blockingRisk
+    ? blockingRisk.reason ?? "Route restricted by Solane risk controls."
+    : null;
 
   useEffect(() => {
     inputRef.current = input;
@@ -239,13 +248,14 @@ function App() {
         };
 
     const quoteForDisplay = (route: RouteResult, pricing: QuotePricing): QuoteResult => {
-      if (collateralEntered) {
+      if (collateralEntered || pricing.blockedCode === "risk_restricted" || pricing.risk?.isBlocking) {
         return quoteFromPricing(route, pricing);
       }
 
       return {
         route,
         estimate: 0,
+        risk: pricing.risk ?? route.routeRisk ?? null,
         blockedCode: "missing_collateral",
         currency: "ISK",
         pricingLabel: "Awaiting collateral",
@@ -309,6 +319,7 @@ function App() {
           return {
             route,
             estimate: 0,
+            risk: localValidation.risk ?? route.routeRisk ?? null,
             blockedCode: "missing_collateral",
             currency: "ISK",
             pricingLabel: "Awaiting collateral",
@@ -482,6 +493,13 @@ function App() {
             />
           </div>
 
+          {riskBlockedReason ? (
+            <div className="quote-input-alert quote-input-alert-restricted" role="alert">
+              <strong>Restricted route</strong>
+              <span>{riskBlockedReason} Change Pick Up or Destination to continue.</span>
+            </div>
+          ) : null}
+
           <div className="size-slot">
             {sizePlaceholderView ? (
               <div
@@ -497,7 +515,7 @@ function App() {
                 <SegmentedControl<CargoSize>
                   label="Size"
                   onChange={updateSize}
-                  options={cargoSizeOptions.map((size) => ({ disabled: size.disabled, label: size.label, value: size.value }))}
+                  options={cargoSizeOptions.map((size) => ({ disabled: controlsBlockedByRisk || size.disabled, label: size.label, value: size.value }))}
                   value={input.size}
                 />
               </div>
@@ -510,6 +528,7 @@ function App() {
               aria-label={`Speed ${labelForSpeed(input.speed)}`}
               aria-pressed={input.speed === "rush"}
               className="speed-toggle-button"
+              disabled={controlsBlockedByRisk}
               onClick={toggleRush}
               type="button"
             >
@@ -526,6 +545,7 @@ function App() {
               <span className="collateral-quick-actions" role="group" aria-label="Collateral shortcuts">
                 <button
                   aria-label="Convert collateral to millions"
+                  disabled={controlsBlockedByRisk}
                   onClick={() => applyCollateralMultiplier(1_000_000)}
                   type="button"
                 >
@@ -533,6 +553,7 @@ function App() {
                 </button>
                 <button
                   aria-label="Convert collateral to billions"
+                  disabled={controlsBlockedByRisk}
                   onClick={() => applyCollateralMultiplier(1_000_000_000)}
                   type="button"
                 >
@@ -548,6 +569,7 @@ function App() {
             }
             aria-invalid={collateralInvalid}
             className={collateralInvalid ? "field-invalid" : ""}
+            disabled={controlsBlockedByRisk}
             hint={collateralInvalid ? collateralValidation.message ?? undefined : undefined}
             inputMode="decimal"
             label="Collateral"
@@ -569,6 +591,7 @@ function App() {
           <RouteOverview
             closing={roadOverviewView.closing}
             input={roadOverviewView.input}
+            risk={quote.risk ?? quoteValidation.risk ?? null}
             route={roadOverviewView.route}
           />
         ) : null}

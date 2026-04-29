@@ -270,6 +270,7 @@ export type RouteResult = {
 export type QuoteResult = {
   route: RouteResult;
   estimate: number;
+  risk?: RouteRiskSummary | null;
   blockedReason?: string;
   blockedCode?: BlockedCode;
   currency: "ISK";
