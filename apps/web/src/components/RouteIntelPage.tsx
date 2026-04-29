@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, BadgeCheck, Coins, GitBranch, MapPinned, Radar, ShieldAlert, Zap } from "lucide-react";
+import { AlertTriangle, ArrowLeft, BadgeCheck, Coins, Copy, GitBranch, MapPinned, Radar, ShieldAlert, Zap } from "lucide-react";
 import type { CSSProperties, FocusEvent, PointerEvent, ReactNode } from "react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -58,7 +58,11 @@ export function RouteIntelPage() {
   const [closingIntel, setClosingIntel] = useState<ActiveIntel | null>(null);
   const [detail, setDetail] = useState<IntelDetailState>(initialDetailState);
   const [esiRecoveryKey, setEsiRecoveryKey] = useState(0);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [supportCopied, setSupportCopied] = useState(false);
   const closeTimerRef = useRef<number | null>(null);
+  const supportRef = useRef<HTMLDivElement | null>(null);
+  const supportCopyTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const handleEsiRestored = () => {
@@ -163,17 +167,85 @@ export function RouteIntelPage() {
     if (closeTimerRef.current !== null) {
       window.clearTimeout(closeTimerRef.current);
     }
+    if (supportCopyTimerRef.current !== null) {
+      window.clearTimeout(supportCopyTimerRef.current);
+    }
   }, []);
+
+  useEffect(() => {
+    if (!supportOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (supportRef.current?.contains(event.target as Node)) {
+        return;
+      }
+      setSupportOpen(false);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSupportOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [supportOpen]);
+
+  const donationCharacter = overview?.donationCharacter ?? "Vito Solane";
+  const copyDonationCharacter = async () => {
+    try {
+      await navigator.clipboard.writeText(donationCharacter);
+      setSupportCopied(true);
+      if (supportCopyTimerRef.current !== null) {
+        window.clearTimeout(supportCopyTimerRef.current);
+      }
+      supportCopyTimerRef.current = window.setTimeout(() => {
+        setSupportCopied(false);
+        supportCopyTimerRef.current = null;
+      }, 1200);
+    } catch {
+      setSupportCopied(false);
+    }
+  };
 
   return (
     <>
       <section className="route-intel-cockpit" aria-labelledby="route-intel-title">
         <header className="route-intel-page-head">
           <h1 id="route-intel-title">Route Intel</h1>
-          <div className="route-intel-donation">
-            <Coins size={15} />
-            <span>Support</span>
-            <strong>{overview?.donationCharacter ?? "Vito Solane"}</strong>
+          <div className="route-intel-support" ref={supportRef}>
+            <button
+              aria-expanded={supportOpen}
+              aria-haspopup="dialog"
+              className="route-intel-donation"
+              type="button"
+              onClick={() => setSupportOpen((isOpen) => !isOpen)}
+            >
+              <Coins size={15} />
+              <span>Support the project!</span>
+            </button>
+            <div className={`route-intel-support-popover ${supportOpen ? "route-intel-support-popover-open" : ""}`} role="dialog" aria-label="Support Solane Run">
+              <strong>Independent project</strong>
+              <p>Solane Run is a solo-driven EVE freight tool, built and operated independently.</p>
+              <div className="route-intel-support-donation-card">
+                <small>ISK donations accepted on</small>
+                <span className="route-intel-support-character">
+                  <b>{donationCharacter}</b>
+                  <button aria-label={`Copy ${donationCharacter}`} type="button" onClick={copyDonationCharacter}>
+                    <Copy size={12} />
+                  </button>
+                </span>
+              </div>
+              {supportCopied ? <em>Copied</em> : null}
+              <span className="route-intel-support-thanks">Thank you for supporting the service.</span>
+            </div>
           </div>
         </header>
 

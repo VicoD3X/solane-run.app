@@ -105,13 +105,22 @@ Install frontend dependencies:
 npm install
 ```
 
-Configure the API base URL if needed:
+For the full local workspace with frontend + private API, use the local cockpit:
 
 ```powershell
-$env:VITE_API_BASE_URL="http://localhost:8001"
+npm run local:start
+npm run local:status
+npm run local:doctor
+npm run local:stop
 ```
 
-Run the web app:
+This starts the sibling `solane-api` service, starts Vite, and automatically points
+the frontend to the actual local API port. If Windows keeps a stale socket on
+`8001`, the cockpit moves the API to `8002+` for that session.
+
+The detailed process is documented in [`docs/local-workspace.md`](docs/local-workspace.md).
+
+Frontend-only development remains available:
 
 ```powershell
 npm run dev:web

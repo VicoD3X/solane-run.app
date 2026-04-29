@@ -1,4 +1,4 @@
-import { Activity, Calculator, RadioTower } from "lucide-react";
+import { Activity, Calculator, Info, RadioTower } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
@@ -21,6 +21,7 @@ export function AppShell({
   serviceLabel,
 }: AppShellProps) {
   const { status, healthy, eveTime } = useTranquilityStatus();
+  const currentPath = window.location.pathname;
   const accentRgb = hexToRgb(accentColor);
   const destinationRgb = hexToRgb(destinationColor);
   const shellStyle = {
@@ -46,7 +47,7 @@ export function AppShell({
         </a>
 
         <nav aria-label="Primary navigation" className="topnav">
-          <a className="nav-action" href="/">
+          <a className={`nav-action ${currentPath === "/" ? "nav-action-active" : ""}`} href="/">
             <Calculator size={17} />
             <span>Calculator</span>
           </a>
@@ -62,9 +63,14 @@ export function AppShell({
             <span>Discord Server</span>
           </a>
           <span aria-hidden="true" className="nav-separator" />
-          <a className="nav-action" href="/route-intel">
+          <a className={`nav-action ${currentPath === "/route-intel" ? "nav-action-active" : ""}`} href="/route-intel">
             <Activity size={17} />
             <span>Route Intel</span>
+          </a>
+          <span aria-hidden="true" className="nav-separator" />
+          <a className={`nav-action ${currentPath === "/about" ? "nav-action-active" : ""}`} href="/about">
+            <Info size={17} />
+            <span>About</span>
           </a>
         </nav>
 

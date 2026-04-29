@@ -13,6 +13,11 @@
     "preview:web": "npm --workspace apps/web run preview",
     "security:web": "node scripts/verify-security.mjs",
     "w3c:web": "npm --workspace apps/web run w3c",
+    "local:start": "powershell -ExecutionPolicy Bypass -File scripts/local-start.ps1",
+    "local:start:bot": "powershell -ExecutionPolicy Bypass -File scripts/local-start.ps1 -WithBot",
+    "local:stop": "powershell -ExecutionPolicy Bypass -File scripts/local-stop.ps1",
+    "local:status": "powershell -ExecutionPolicy Bypass -File scripts/local-status.ps1",
+    "local:doctor": "powershell -ExecutionPolicy Bypass -File scripts/local-doctor.ps1",
     "export:zip": "powershell -ExecutionPolicy Bypass -File scripts/export-release-zip.ps1",
     "deploy:vps": "powershell -ExecutionPolicy Bypass -File scripts/deploy-vps.ps1"
   }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 
 import { AppShell } from "./components/AppShell";
+import { AboutPage } from "./components/AboutPage";
 import { DataPanel } from "./components/DataPanel";
 import { QuotePanel } from "./components/QuotePanel";
 import { RouteIntelPage } from "./components/RouteIntelPage";
@@ -104,6 +105,7 @@ type SizePlaceholderView = {
 
 function App() {
   const isRouteIntelPage = window.location.pathname === "/route-intel";
+  const isAboutPage = window.location.pathname === "/about";
   const [input, setInput] = useState<QuoteInput>(initialInput);
   const [collateralText, setCollateralText] = useState("");
   const [quoteValidation, setQuoteValidation] = useState<QuoteValidation>(initialValidation);
@@ -479,6 +481,8 @@ function App() {
     >
         {isRouteIntelPage ? (
           <RouteIntelPage />
+        ) : isAboutPage ? (
+          <AboutPage />
         ) : (
         <>
       <section
