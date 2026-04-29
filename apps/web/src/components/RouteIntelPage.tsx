@@ -644,13 +644,18 @@ function GateKillStrip({ gates }: { gates: GatecheckGate[] }) {
     <div className="route-intel-gate-kill-strip" aria-label="Gate kills last hour">
       {gates.map((gate) => (
         <span key={gate.id} className={gate.killsLastHour > 0 ? "route-intel-gate-hot" : ""}>
-          <small>{gate.destinationSystemName ?? gate.name}</small>
+          <small>{formatGateLabel(gate)}</small>
           <b>{gate.killsLastHour}</b>
           <i>Kills</i>
         </span>
       ))}
     </div>
   );
+}
+
+function formatGateLabel(gate: GatecheckGate) {
+  const label = gate.destinationSystemName ?? gate.name;
+  return /\bgate$/i.test(label) ? label : `${label} Gate`;
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
