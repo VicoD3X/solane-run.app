@@ -149,6 +149,9 @@ function fallbackCollateralLimit(input: Pick<QuoteInput, "pickup" | "destination
 }
 
 function fallbackCollateralLimitForService(service: ServiceType, size: CargoSize): number {
+  if (size !== "small") {
+    return size === "freighter" ? HIGHSEC_FREIGHTER_COLLATERAL_VALUE : MAX_COLLATERAL_VALUE;
+  }
   if (service === "LowSec") {
     return LOWSEC_COLLATERAL_VALUE;
   }
@@ -158,7 +161,7 @@ function fallbackCollateralLimitForService(service: ServiceType, size: CargoSize
   if (service === "Thera" || service === "Zarzakh") {
     return MAX_COLLATERAL_VALUE;
   }
-  return size === "freighter" ? HIGHSEC_FREIGHTER_COLLATERAL_VALUE : MAX_COLLATERAL_VALUE;
+  return MAX_COLLATERAL_VALUE;
 }
 
 export function fallbackRoute(input: QuoteInput): RouteResult {
