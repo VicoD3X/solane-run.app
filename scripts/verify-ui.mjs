@@ -112,10 +112,9 @@ try {
   await expect(desktop.getByRole("combobox", { name: "Destination" })).toHaveValue("");
   await expect(desktop.getByRole("textbox", { name: "Volume" })).toHaveCount(0);
   await expect(desktop.getByRole("textbox", { name: "Collateral" })).toHaveValue("");
-  await expect(desktop.getByRole("button", { name: "13,000 m3" })).toHaveCount(0);
-  await expect(desktop.getByRole("button", { name: "60,000 m3" })).toHaveCount(0);
+  await expect(desktop.getByRole("button", { name: "13,000 m3" })).toBeDisabled();
+  await expect(desktop.getByRole("button", { name: "60,000 m3" })).toBeDisabled();
   await expect(desktop.getByRole("button", { name: "800,000 m3" })).toHaveCount(0);
-  await expect(desktop.getByText("Set Pick Up and Destination to unlock cargo sizes.")).toBeVisible();
   await expect(desktop.locator(".contract-packet").getByText("60,000 m3")).toBeVisible();
   await expect(desktop.locator(".contract-packet").getByText("Not set")).toBeVisible();
   await desktop.getByRole("combobox", { name: "Pick Up" }).fill("Jita123");
@@ -151,10 +150,9 @@ try {
     await desktop.getByRole("option", { name: /Jita/i }).click();
     await desktop.getByRole("combobox", { name: "Destination" }).fill("Amarr");
     await desktop.getByRole("option", { name: /Amarr/i }).click();
-    await expect(desktop.getByRole("button", { name: "13,000 m3" })).toBeVisible();
-    await expect(desktop.getByRole("button", { name: "60,000 m3" })).toBeVisible();
+    await expect(desktop.getByRole("button", { name: "13,000 m3" })).toBeEnabled();
+    await expect(desktop.getByRole("button", { name: "60,000 m3" })).toBeEnabled();
     await expect(desktop.getByRole("button", { name: "800,000 m3" })).toHaveCount(0);
-    await expect(desktop.getByText("Set Pick Up and Destination to unlock cargo sizes.")).toHaveCount(0, { timeout: 2000 });
     await expect(desktop.locator(".contract-packet").getByText("Jita - Amarr")).toBeVisible();
     await expect(desktop.getByText("Road Overview")).toBeVisible();
     await expect(desktop.locator(".road-overview")).toBeVisible();
@@ -218,11 +216,10 @@ try {
   await desktop.screenshot({ path: "dev.logs/desktop.png", fullPage: true });
   if (apiAvailable) {
     await desktop.getByRole("button", { name: "Clear Destination" }).click();
-    await expect(desktop.locator(".size-reveal-closing")).toBeVisible({ timeout: 1000 });
     await expect(desktop.locator(".road-overview-closing")).toBeVisible({ timeout: 1000 });
     await expect(desktop.locator(".copyable-value em.route-meta-closing")).toBeVisible({ timeout: 1000 });
-    await expect(desktop.getByRole("button", { name: "13,000 m3" })).toHaveCount(0, { timeout: 2000 });
-    await expect(desktop.getByText("Set Pick Up and Destination to unlock cargo sizes.")).toBeVisible({ timeout: 2000 });
+    await expect(desktop.getByRole("button", { name: "13,000 m3" })).toBeDisabled({ timeout: 2000 });
+    await expect(desktop.getByRole("button", { name: "60,000 m3" })).toBeDisabled({ timeout: 2000 });
     await expect(desktop.locator(".road-overview")).toHaveCount(0, { timeout: 2000 });
     await expect(desktop.locator(".contract-packet").getByText("Jita - Amarr")).toHaveCount(0, { timeout: 2000 });
   }
@@ -236,7 +233,9 @@ try {
   await expect(mobile.getByText("Quote Summary")).toHaveCount(0);
   await expect(mobile.getByText("Contract Review")).toBeVisible();
   await expect(mobile.getByRole("combobox", { name: "Pick Up" })).toHaveValue("");
-  await expect(mobile.getByText("Set Pick Up and Destination to unlock cargo sizes.")).toBeVisible();
+  await expect(mobile.getByRole("button", { name: "13,000 m3" })).toBeDisabled();
+  await expect(mobile.getByRole("button", { name: "60,000 m3" })).toBeDisabled();
+  await expect(mobile.getByRole("button", { name: "800,000 m3" })).toHaveCount(0);
 
   const mobileOverflow = await mobile.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

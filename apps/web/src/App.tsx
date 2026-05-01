@@ -95,14 +95,6 @@ type RoadOverviewView = {
   route: RouteResult;
 };
 
-type SizeSelectorView = {
-  closing: boolean;
-};
-
-type SizePlaceholderView = {
-  closing: boolean;
-};
-
 function App() {
   const isRouteIntelPage = window.location.pathname === "/route-intel";
   const isAboutPage = window.location.pathname === "/about";
@@ -111,8 +103,6 @@ function App() {
   const [quoteValidation, setQuoteValidation] = useState<QuoteValidation>(initialValidation);
   const [quote, setQuote] = useState<QuoteResult>(() => calculateQuote(initialInput, initialRoute, initialValidation));
   const [roadOverviewView, setRoadOverviewView] = useState<RoadOverviewView | null>(null);
-  const [sizeSelectorView, setSizeSelectorView] = useState<SizeSelectorView | null>(null);
-  const [sizePlaceholderView, setSizePlaceholderView] = useState<SizePlaceholderView | null>({ closing: false });
   const [serviceWindow, setServiceWindow] = useState(() => serviceWindowFallback());
   const [esiRecoveryKey, setEsiRecoveryKey] = useState(0);
   const [, setIsSyncing] = useState(false);
@@ -207,38 +197,6 @@ function App() {
 
     void syncRoute();
   }, [pickupId, destinationId, syncRoute, esiRecoveryKey]);
-
-  useEffect(() => {
-    if (endpointsReady) {
-      setSizeSelectorView({ closing: false });
-      setSizePlaceholderView((currentView) => {
-        if (!currentView || currentView.closing) {
-          return currentView;
-        }
-        return { closing: true };
-      });
-
-      const timeout = window.setTimeout(() => {
-        setSizePlaceholderView((currentView) => (currentView?.closing ? null : currentView));
-      }, 260);
-
-      return () => window.clearTimeout(timeout);
-    }
-
-    setSizePlaceholderView({ closing: false });
-    setSizeSelectorView((currentView) => {
-      if (!currentView || currentView.closing) {
-        return currentView;
-      }
-      return { closing: true };
-    });
-
-    const timeout = window.setTimeout(() => {
-      setSizeSelectorView((currentView) => (currentView?.closing ? null : currentView));
-    }, 320);
-
-    return () => window.clearTimeout(timeout);
-  }, [endpointsReady]);
 
   useEffect(() => {
     const localValidation = fallbackQuoteValidation(input);
@@ -515,25 +473,18 @@ function App() {
           ) : null}
 
           <div className="size-slot">
-            {sizePlaceholderView ? (
-              <div
-                className={`size-placeholder ${sizePlaceholderView.closing ? "size-placeholder-closing" : ""}`}
-              >
-                <span className="size-placeholder-label">Size</span>
-                <p>Set Pick Up and Destination to unlock cargo sizes.</p>
-              </div>
-            ) : null}
-
-            {sizeSelectorView ? (
-              <div className={`size-reveal ${sizeSelectorView.closing ? "size-reveal-closing" : ""}`}>
-                <SegmentedControl<CargoSize>
-                  label="Size"
-                  onChange={updateSize}
-                  options={cargoSizeOptions.map((size) => ({ disabled: controlsBlockedByRisk || size.disabled, label: size.label, value: size.value }))}
-                  value={input.size}
-                />
-              </div>
-            ) : null}
+            <div className={`size-reveal ${endpointsReady ? "" : "size-reveal-locked"}`}>
+              <SegmentedControl<CargoSize>
+                label="Size"
+                onChange={updateSize}
+                options={cargoSizeOptions.map((size) => ({
+                  disabled: !endpointsReady || controlsBlockedByRisk || size.disabled,
+                  label: size.label,
+                  value: size.value,
+                }))}
+                value={input.size}
+              />
+            </div>
           </div>
 
           <div className="speed-toggle">

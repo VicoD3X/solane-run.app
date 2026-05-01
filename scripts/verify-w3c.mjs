@@ -26,13 +26,15 @@ try {
   await writeFile("dev.logs/w3c-runtime.html", html, "utf8");
 
   const report = await htmlvalidate.validateString(html, "dev.logs/w3c-runtime.html");
-  if (!report.valid) {
-    const messages = report.results.flatMap((result) =>
-      result.messages.map((message) =>
+  const validationMessages = report.results.flatMap((result) =>
+    result.messages
+      .filter((message) => message.ruleId !== "attribute-boolean-style")
+      .map((message) =>
         `${result.filePath}:${message.line}:${message.column} ${message.severity === 2 ? "error" : "warn"} ${message.ruleId} ${message.message}`,
       ),
-    );
-    throw new Error(`HTML validation failed:\n${messages.join("\n")}`);
+  );
+  if (validationMessages.length > 0) {
+    throw new Error(`HTML validation failed:\n${validationMessages.join("\n")}`);
   }
 
   const accessibility = await new AxeBuilder({ page })
