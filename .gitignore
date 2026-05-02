@@ -1,8 +1,5 @@
 node_modules/
 dist/
-.vite/
-apps/web/dist/
-apps/web/node_modules/
 __pycache__/
 .ruff_cache/
 .mypy_cache/
@@ -14,7 +11,6 @@ env/
 *.log
 dev.logs/
 .codex-logs/
-docs/deploy/hetzner-vps.md
 .DS_Store
 Thumbs.db
 .idea/

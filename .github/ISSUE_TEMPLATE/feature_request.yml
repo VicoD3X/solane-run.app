@@ -1,38 +1,19 @@
-name: Feature request
-description: Propose a Solane Run improvement.
-title: "[Feature] "
-labels:
-  - enhancement
+name: Edge/documentation request
+description: Suggest an improvement for the public edge repository.
+title: "[Edge]: "
+labels: ["enhancement"]
 body:
   - type: textarea
-    id: problem
+    id: request
     attributes:
-      label: Problem
-      description: What workflow or user need does this solve?
-      placeholder: Freight operators need...
+      label: Request
+      description: Describe the edge or documentation change.
     validations:
       required: true
   - type: textarea
-    id: proposal
+    id: boundary
     attributes:
-      label: Proposed solution
-      placeholder: Add...
+      label: Boundary
+      description: Confirm this does not reintroduce calculator, pricing, bot, or API business logic here.
     validations:
       required: true
-  - type: dropdown
-    id: scope
-    attributes:
-      label: Scope
-      description: The public repository is frontend-only.
-      options:
-        - Frontend only
-        - API contract change
-        - Requires private backend work
-        - Unsure
-    validations:
-      required: true
-  - type: textarea
-    id: notes
-    attributes:
-      label: Notes
-      description: Design references, edge cases, or EVE-specific constraints.

@@ -7,34 +7,24 @@ on:
       - main
 
 jobs:
-  web:
-    name: Web
+  edge-config:
+    name: Edge config
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint web
-        run: npm run lint:web
-
-      - name: Build web
-        run: npm run build:web
-
-      - name: Validate frontend security guardrails
-        run: npm run security:web
-
-      - name: Validate W3C and accessibility
+      - name: Check legacy frontend is not active on main
         run: |
-          npm run dev:web -- --host 127.0.0.1 > /tmp/solane-run-vite.log 2>&1 &
-          npm --workspace apps/web exec wait-on http://127.0.0.1:5173
-          npm run w3c:web
+          test ! -d apps/web
+          test ! -f package.json
+
+      - name: Validate Caddy compose
+        run: docker compose -f infra/caddy/docker-compose.yml config
+
+      - name: Check API-only Caddy route
+        run: |
+          grep -q 'respond "Solane Run freight service is now closed. PushX, Red Frog, and DSHX are excellent replacement options." 410' infra/caddy/Caddyfile.solane-run
+          grep -q 'reverse_proxy solane-api:8000' infra/caddy/Caddyfile.solane-run
+          ! grep -q 'solane-web' infra/caddy/Caddyfile.solane-run

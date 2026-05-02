@@ -1,26 +1,15 @@
 ## Summary
 
-- 
+-
 
-## Scope
+## Repository Boundary
 
-- [ ] Frontend
-- [ ] API contract
-- [ ] Docker or infra
-- [ ] GitHub or docs only
+- [ ] This change is limited to public edge configuration, documentation, or repository hygiene.
+- [ ] This change does not reintroduce calculator/frontend app code.
+- [ ] This change does not include secrets, pricing formulas, private ESI logic, bot logic, or API business logic.
 
-## Private Backend Guardrail
+## Verification
 
-- [ ] This change does not introduce backend business logic, EVE ESI adapters, pricing formulas, private structures, saved user quotes, or account-bound flows into the public repository.
-- [ ] Any backend-facing behavior is represented through `docs/api/frontend-contract.md`.
-
-## Validation
-
-- [ ] `npm run lint:web`
-- [ ] `npm run build:web`
-- [ ] `node scripts/verify-ui.mjs`
-- [ ] `docker compose -f infra/docker-compose.yml config`
-
-## Screenshots
-
-Add desktop and mobile screenshots for visual changes.
+- [ ] `docker compose -f infra/caddy/docker-compose.yml config`
+- [ ] Caddyfile still proxies `/api/*` to `solane-api:8000`
+- [ ] Caddyfile still returns the closed-service notice outside `/api/*`

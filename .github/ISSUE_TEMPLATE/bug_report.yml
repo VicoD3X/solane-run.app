@@ -1,58 +1,19 @@
-name: Bug report
-description: Report a reproducible Solane Run defect.
-title: "[Bug] "
-labels:
-  - bug
+name: Edge configuration issue
+description: Report a problem with the public edge repository.
+title: "[Edge]: "
+labels: ["bug"]
 body:
   - type: textarea
     id: summary
     attributes:
       label: Summary
-      description: What is broken?
-      placeholder: The calculator...
+      description: What is wrong with the public edge configuration or documentation?
     validations:
       required: true
   - type: textarea
-    id: steps
+    id: evidence
     attributes:
-      label: Reproduction steps
-      description: Keep this concrete and ordered.
-      placeholder: |
-        1. Open the calculator
-        2. Select Jita as Pick Up
-        3. Select Amarr as Destination
-        4. Observe...
+      label: Evidence
+      description: Include command output, URL status, or screenshots when useful.
     validations:
-      required: true
-  - type: textarea
-    id: expected
-    attributes:
-      label: Expected behavior
-      placeholder: I expected...
-    validations:
-      required: true
-  - type: textarea
-    id: actual
-    attributes:
-      label: Actual behavior
-      placeholder: Instead...
-    validations:
-      required: true
-  - type: dropdown
-    id: area
-    attributes:
-      label: Area
-      options:
-        - Calculator UI
-        - Route overview
-        - System autocomplete
-        - Backend API
-        - Docker or local setup
-        - GitHub or docs
-    validations:
-      required: true
-  - type: textarea
-    id: context
-    attributes:
-      label: Extra context
-      description: Screenshots, browser details, logs, or API responses.
+      required: false

@@ -1,8 +1,0 @@
-{
-  "extends": ["html-validate:recommended"],
-  "rules": {
-    "no-inline-style": "off",
-    "prefer-native-element": "off",
-    "svg-focusable": "off"
-  }
-}

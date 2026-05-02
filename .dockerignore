@@ -1,8 +1,11 @@
-node_modules
-apps/web/node_modules
-apps/web/dist
-dev.logs
-.codex-logs
+.git
 .env
 .env.local
-.git
+dev.logs
+.codex-logs
+node_modules
+dist
+__pycache__
+.pytest_cache
+.ruff_cache
+.venv
