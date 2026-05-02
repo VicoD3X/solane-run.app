@@ -207,9 +207,19 @@ cd "$BASE/caddy"
 docker compose up -d
 
 curl -fsS http://127.0.0.1:8001/health >/dev/null
-curl -fsSI http://127.0.0.1:8080 >/dev/null
 curl -fsS https://solane-run.app/api/eve/status >/dev/null
-curl -fsSI https://solane-run.app >/dev/null
+
+if grep -q 'solane-web' "$BASE/caddy/Caddyfile"; then
+  curl -fsSI http://127.0.0.1:8080 >/dev/null
+  curl -fsSI https://solane-run.app >/dev/null
+else
+  (cd "$BASE/repo/web" && docker compose --env-file "$ENV_FILE" -f infra/docker-compose.yml stop web) || true
+  status="$(curl -fsS -o /tmp/solane-root-status.txt -w '%{http_code}' https://solane-run.app || true)"
+  if [ "$status" != "410" ]; then
+    echo "Expected API-only root status 410, got $status" >&2
+    exit 1
+  fi
+fi
 
 find "$BASE/backups" -maxdepth 1 -type f -name 'repo-*.tgz' -printf '%T@ %p\n' | sort -n | head -n -8 | cut -d' ' -f2- | xargs -r rm -f
 find "$BASE/releases" -maxdepth 1 -type d -name '20*' -printf '%T@ %p\n' | sort -n | head -n -12 | cut -d' ' -f2- | xargs -r rm -rf

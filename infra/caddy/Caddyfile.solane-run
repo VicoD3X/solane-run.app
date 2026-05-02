@@ -8,5 +8,13 @@ solane-run.app, www.solane-run.app {
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
 	}
 
-	reverse_proxy solane-web:80
+	@api path /api/*
+	handle @api {
+		reverse_proxy solane-api:8000
+	}
+
+	handle {
+		header Content-Type "text/plain; charset=utf-8"
+		respond "Solane Run public calculator is offline. Solane API and intel services remain online." 410
+	}
 }
