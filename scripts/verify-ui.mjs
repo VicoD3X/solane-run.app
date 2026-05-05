@@ -15,13 +15,15 @@ try {
   await expect(desktop.getByRole("link", { name: "Solane Run calculator" })).toBeVisible();
   await expect(desktop.getByText("Freight quotation control")).toBeVisible();
   await expect(desktop.getByRole("heading", { name: "Freight parameters" })).toBeVisible();
+  await expect(desktop.getByText("Core freight")).toBeVisible();
+  await expect(desktop.getByText("Heavy lift / occasional")).toBeVisible();
   await expect(desktop.getByText("Contract Review")).toHaveCount(0);
   await expect(desktop.getByText("Route Intel")).toHaveCount(0);
   await expect(desktop.getByText("About")).toHaveCount(0);
   await expect(desktop.getByText(/traffic/i)).toHaveCount(0);
   await expect(desktop.getByRole("button", { name: "13,000 m3" })).toBeDisabled();
   await expect(desktop.getByRole("button", { name: "60,000 m3" })).toBeDisabled();
-  await expect(desktop.getByRole("button", { name: "800,000 m3" })).toBeDisabled();
+  await expect(desktop.getByRole("button", { name: /800,000 m3/ })).toBeDisabled();
 
   if (apiAvailable) {
     await desktop.getByRole("combobox", { name: "Pick Up" }).fill("Jita");
@@ -30,8 +32,8 @@ try {
     await desktop.getByRole("option", { name: /Amarr/i }).click();
     await expect(desktop.getByRole("button", { name: "13,000 m3" })).toBeEnabled({ timeout: 15000 });
     await expect(desktop.getByRole("button", { name: "60,000 m3" })).toBeEnabled();
-    await expect(desktop.getByRole("button", { name: "800,000 m3" })).toBeEnabled();
-    await desktop.getByRole("button", { name: "800,000 m3" }).click();
+    await expect(desktop.getByRole("button", { name: /800,000 m3/ })).toBeEnabled();
+    await desktop.getByRole("button", { name: /800,000 m3/ }).click();
     await expect(desktop.getByText("Rush unavailable for 800,000 m3.")).toBeVisible();
     await expect(desktop.locator(".speed-toggle-button")).toBeDisabled();
     await expect(desktop.getByText("Contract Review")).toHaveCount(0);

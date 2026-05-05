@@ -55,6 +55,8 @@ function App() {
   const collateralEntered = collateralText.trim().length > 0 && input.collateral > 0;
   const quoteReady = endpointsReady && collateralEntered;
   const cargoSizeOptions = availableCargoSizesForQuote(input, quoteValidation);
+  const coreCargoSizeOptions = cargoSizeOptions.filter((size) => size.value !== "freighter");
+  const freighterCargoSizeOption = cargoSizeOptions.find((size) => size.value === "freighter");
   const collateralValidation = validateCollateral(input, quoteValidation);
   const collateralInvalid = !collateralValidation.valid;
   const blockingRisk = quote.risk?.isBlocking
@@ -340,16 +342,38 @@ function App() {
             ) : null}
 
             <div className={controlsBlockedByRisk ? "freight-controls freight-controls-disabled" : "freight-controls"}>
-              <SegmentedControl<CargoSize>
-                label="Size"
-                onChange={updateSize}
-                options={cargoSizeOptions.map((size) => ({
-                  disabled: !endpointsReady || controlsBlockedByRisk || size.disabled,
-                  label: size.label,
-                  value: size.value,
-                }))}
-                value={input.size}
-              />
+              <div className="cargo-selection">
+                <SegmentedControl<CargoSize>
+                  label="Core freight"
+                  onChange={updateSize}
+                  options={coreCargoSizeOptions.map((size) => ({
+                    disabled: !endpointsReady || controlsBlockedByRisk || size.disabled,
+                    label: size.label,
+                    value: size.value,
+                  }))}
+                  value={freighterSelected ? null : input.size}
+                />
+
+                {freighterCargoSizeOption ? (
+                  <fieldset className="freighter-choice">
+                    <legend>Heavy lift / occasional</legend>
+                    <button
+                      aria-pressed={freighterSelected}
+                      className="freighter-choice-button"
+                      disabled={!endpointsReady || controlsBlockedByRisk || freighterCargoSizeOption.disabled}
+                      onClick={() => updateSize("freighter")}
+                      type="button"
+                    >
+                      <span>
+                        <strong>{freighterCargoSizeOption.label}</strong>
+                        <small>Freighter capacity</small>
+                      </span>
+                      <em>Normal only</em>
+                    </button>
+                    <p>DST / BR remains the primary desk. Freighter quotes are available as a secondary service.</p>
+                  </fieldset>
+                ) : null}
+              </div>
 
               <div className="speed-toggle">
                 <span className="speed-toggle-label">Speed</span>
