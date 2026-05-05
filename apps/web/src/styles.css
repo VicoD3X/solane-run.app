@@ -212,11 +212,11 @@ a {
 }
 
 .calculator-page {
-  padding: 42px 0 28px;
+  padding: 34px 0 28px;
 }
 
 .calculator-intro {
-  width: min(820px, 100%);
+  width: min(680px, 100%);
   margin-bottom: 22px;
 }
 
@@ -228,13 +228,13 @@ a {
 }
 
 .calculator-intro h1 {
-  margin: 8px 0 10px;
-  font-size: 2rem;
+  margin: 7px 0 8px;
+  font-size: 1.9rem;
   line-height: 1.1;
 }
 
 .calculator-intro p {
-  max-width: 760px;
+  max-width: 520px;
   margin: 0;
   color: var(--muted);
 }
@@ -275,6 +275,10 @@ a {
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: 12px;
   align-items: start;
+}
+
+.system-combobox {
+  position: relative;
 }
 
 .system-arrow {
@@ -411,7 +415,9 @@ a {
 .combobox-menu {
   position: absolute;
   z-index: 20;
-  width: 100%;
+  left: 0;
+  right: 0;
+  width: auto;
   max-height: 288px;
   overflow: auto;
   margin-top: 6px;
@@ -424,7 +430,7 @@ a {
 .combobox-state,
 .combobox-option {
   width: 100%;
-  min-height: 54px;
+  min-height: 50px;
   border: 0;
   border-bottom: 1px solid rgba(35, 56, 76, 0.68);
   background: transparent;
@@ -437,7 +443,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 9px 11px;
+  padding: 8px 10px;
 }
 
 .combobox-option:hover,
@@ -636,7 +642,7 @@ a {
 }
 
 .freighter-choice p {
-  margin: 7px 0 0;
+  margin: 6px 0 0;
   color: var(--dim);
 }
 
@@ -808,6 +814,10 @@ a {
   color: var(--blue);
 }
 
+.quote-placeholder-syncing svg {
+  animation: pulse-sync 1.2s ease-in-out infinite;
+}
+
 .quote-placeholder span {
   color: var(--text);
   font-weight: 700;
@@ -821,6 +831,17 @@ a {
 
 .site-footer {
   display: none;
+}
+
+@keyframes pulse-sync {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 900px) {
@@ -843,7 +864,7 @@ a {
   }
 
   .calculator-intro h1 {
-    font-size: 1.65rem;
+    font-size: 1.55rem;
   }
 
   .calculator-grid,

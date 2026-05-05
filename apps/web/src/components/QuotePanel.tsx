@@ -66,7 +66,7 @@ export function QuotePanel({ input, result, serviceWindow }: QuotePanelProps) {
   return (
     <aside className={`quote-panel ${isStrongBlock ? "quote-panel-blocked" : ""} ${isRiskRestricted ? "quote-panel-restricted" : ""}`} id="pricing">
       <div className="quote-head">
-        <strong>Contract Review</strong>
+        <strong>Contract packet</strong>
       </div>
 
       {displayedBlockedReason ? (
@@ -114,8 +114,8 @@ export function QuotePanel({ input, result, serviceWindow }: QuotePanelProps) {
         {!rewardHidden ? (
           <PacketRow
             copied={copiedKey === "reward"}
-            icon={<CircleDollarSign size={17} />}
-            label="Rewards"
+          icon={<CircleDollarSign size={17} />}
+            label="Reward"
             onCopy={isBlocked ? undefined : () => copyValue("reward", reward)}
             value={reward}
           />

@@ -54,6 +54,7 @@ function App() {
   const destinationId = input.destination?.id;
   const collateralEntered = collateralText.trim().length > 0 && input.collateral > 0;
   const quoteReady = endpointsReady && collateralEntered;
+  const quoteSyncing = quoteReady && quote.source === "local" && quote.blockedCode === "pricing_unavailable";
   const cargoSizeOptions = availableCargoSizesForQuote(input, quoteValidation);
   const coreCargoSizeOptions = cargoSizeOptions.filter((size) => size.value !== "freighter");
   const freighterCargoSizeOption = cargoSizeOptions.find((size) => size.value === "freighter");
@@ -308,25 +309,25 @@ function App() {
     <AppShell>
       <section className="calculator-page" aria-label="Solane Run freight calculator">
         <div className="calculator-intro">
-          <span>Courier desk</span>
-          <h1>Freight quotation control</h1>
-          <p>Public calculator for Solane Run courier contracts. Routes stay editable while Solane Engine validates service limits and endpoint risk.</p>
+          <span>DST / BR desk</span>
+          <h1>Freight calculator</h1>
+          <p>Fast courier quotes with Solane Engine guardrails.</p>
         </div>
 
         <div className="calculator-grid">
-          <DataPanel className="form-panel" eyebrow="Step 01" title="Freight parameters">
+          <DataPanel className="form-panel" eyebrow="Step 01" title="Quote parameters">
             <div className="system-row">
               <SystemAutocomplete
                 label="Pick Up"
                 onChange={(system) => updateInput("pickup", system)}
-                placeholder="Search a system"
+                placeholder="Search system"
                 value={input.pickup}
               />
               <ArrowRight aria-hidden="true" className="system-arrow" size={22} />
               <SystemAutocomplete
                 label="Destination"
                 onChange={(system) => updateInput("destination", system)}
-                placeholder="Search a system"
+                placeholder="Search system"
                 value={input.destination}
               />
             </div>
@@ -344,21 +345,21 @@ function App() {
             <div className={controlsBlockedByRisk ? "freight-controls freight-controls-disabled" : "freight-controls"}>
               <div className="cargo-selection">
                 <SegmentedControl<CargoSize>
-                  label="Core freight"
+                  label="DST / BR freight"
                   onChange={updateSize}
                   options={coreCargoSizeOptions.map((size) => ({
                     disabled: !endpointsReady || controlsBlockedByRisk || size.disabled,
                     label: size.label,
                     value: size.value,
                   }))}
-                  value={freighterSelected ? null : input.size}
+                  value={!endpointsReady || freighterSelected ? null : input.size}
                 />
 
                 {freighterCargoSizeOption ? (
                   <fieldset className="freighter-choice">
-                    <legend>Heavy lift / occasional</legend>
+                    <legend>Freighter option</legend>
                     <button
-                      aria-pressed={freighterSelected}
+                      aria-pressed={endpointsReady && freighterSelected}
                       className="freighter-choice-button"
                       disabled={!endpointsReady || controlsBlockedByRisk || freighterCargoSizeOption.disabled}
                       onClick={() => updateSize("freighter")}
@@ -366,11 +367,11 @@ function App() {
                     >
                       <span>
                         <strong>{freighterCargoSizeOption.label}</strong>
-                        <small>Freighter capacity</small>
+                        <small>Occasional capacity</small>
                       </span>
                       <em>Normal only</em>
                     </button>
-                    <p>DST / BR remains the primary desk. Freighter quotes are available as a secondary service.</p>
+                    <p>Secondary service. Normal speed only.</p>
                   </fieldset>
                 ) : null}
               </div>
@@ -391,7 +392,7 @@ function App() {
                     <span>Rush</span>
                   </span>
                 </button>
-                {freighterSelected ? <small className="control-note">Rush unavailable for 800,000 m3.</small> : null}
+                {freighterSelected ? <small className="control-note">800k runs Normal only.</small> : null}
               </div>
 
               <Input
@@ -410,7 +411,7 @@ function App() {
                 aria-invalid={collateralInvalid}
                 className={collateralInvalid ? "field-invalid" : ""}
                 disabled={controlsBlockedByRisk}
-                hint={collateralInvalid ? collateralValidation.message ?? undefined : "Use M or B for quick conversion."}
+                hint={collateralInvalid ? collateralValidation.message ?? undefined : "M/B quick fill."}
                 inputMode="decimal"
                 label="Collateral"
                 maxLength={18}
@@ -422,13 +423,16 @@ function App() {
             </div>
           </DataPanel>
 
-          {quoteReady ? (
+          {quoteReady && !quoteSyncing ? (
             <QuotePanel input={input} result={quote} serviceWindow={serviceWindow} />
           ) : (
-            <aside className="quote-placeholder" aria-label="Freight parameters incomplete">
+            <aside
+              className={`quote-placeholder ${quoteSyncing ? "quote-placeholder-syncing" : ""}`}
+              aria-label={quoteSyncing ? "Quote syncing" : "Freight parameters incomplete"}
+            >
               <ShieldCheck size={26} />
-              <span>Awaiting freight parameters</span>
-              <p>Fill Pick Up, Destination, Size, Speed and Collateral to generate the contract packet.</p>
+              <span>{quoteSyncing ? "Syncing quote" : "Awaiting quote"}</span>
+              <p>{quoteSyncing ? "Checking route and reward." : "Complete route, size and collateral."}</p>
             </aside>
           )}
         </div>

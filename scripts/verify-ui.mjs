@@ -13,11 +13,11 @@ try {
 
   await expect(desktop).toHaveTitle("Solane Run");
   await expect(desktop.getByRole("link", { name: "Solane Run calculator" })).toBeVisible();
-  await expect(desktop.getByText("Freight quotation control")).toBeVisible();
-  await expect(desktop.getByRole("heading", { name: "Freight parameters" })).toBeVisible();
-  await expect(desktop.getByText("Core freight")).toBeVisible();
-  await expect(desktop.getByText("Heavy lift / occasional")).toBeVisible();
-  await expect(desktop.getByText("Contract Review")).toHaveCount(0);
+  await expect(desktop.getByRole("heading", { name: "Freight calculator" })).toBeVisible();
+  await expect(desktop.getByRole("heading", { name: "Quote parameters" })).toBeVisible();
+  await expect(desktop.getByText("DST / BR freight")).toBeVisible();
+  await expect(desktop.getByText("Freighter option")).toBeVisible();
+  await expect(desktop.getByText("Contract packet")).toHaveCount(0);
   await expect(desktop.getByText("Route Intel")).toHaveCount(0);
   await expect(desktop.getByText("About")).toHaveCount(0);
   await expect(desktop.getByText(/traffic/i)).toHaveCount(0);
@@ -34,13 +34,13 @@ try {
     await expect(desktop.getByRole("button", { name: "60,000 m3" })).toBeEnabled();
     await expect(desktop.getByRole("button", { name: /800,000 m3/ })).toBeEnabled();
     await desktop.getByRole("button", { name: /800,000 m3/ }).click();
-    await expect(desktop.getByText("Rush unavailable for 800,000 m3.")).toBeVisible();
+    await expect(desktop.getByText("800k runs Normal only.")).toBeVisible();
     await expect(desktop.locator(".speed-toggle-button")).toBeDisabled();
-    await expect(desktop.getByText("Contract Review")).toHaveCount(0);
+    await expect(desktop.getByText("Contract packet")).toHaveCount(0);
     await desktop.getByRole("textbox", { name: "Collateral" }).fill("200000000");
-    await expect(desktop.getByText("Contract Review")).toBeVisible({ timeout: 15000 });
+    await expect(desktop.getByText("Contract packet")).toBeVisible({ timeout: 15000 });
     await expect(desktop.locator(".contract-packet").getByText("800,000 m3")).toBeVisible();
-    await expect(desktop.getByRole("button", { name: "Copy Rewards" })).toBeVisible({ timeout: 15000 });
+    await expect(desktop.getByRole("button", { name: "Copy Reward" })).toBeVisible({ timeout: 15000 });
   }
 
   await assertNoOverflow(desktop, "Desktop");
@@ -49,8 +49,8 @@ try {
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
   await mobile.goto(baseUrl, { waitUntil: "domcontentloaded" });
   await mobile.evaluate(() => document.fonts.ready);
-  await expect(mobile.getByText("Freight quotation control")).toBeVisible();
-  await expect(mobile.getByText("Contract Review")).toHaveCount(0);
+  await expect(mobile.getByRole("heading", { name: "Freight calculator" })).toBeVisible();
+  await expect(mobile.getByText("Contract packet")).toHaveCount(0);
   await assertNoOverflow(mobile, "Mobile");
   await mobile.screenshot({ path: "dev.logs/mobile.png", fullPage: true });
 } finally {
