@@ -26,7 +26,7 @@ const cargoSizeOrder: CargoSize[] = cargoSizes.map((option) => option.value);
 const cargoSizesByService: Record<ServiceType, CargoSize[]> = {
   HighSec: ["small", "medium"],
   LowSec: ["small"],
-  NpcNullSec: ["small"],
+  NpcNullSec: [],
   Pochven: ["small", "medium"],
   Thera: ["small", "medium"],
   Zarzakh: ["small", "medium"],

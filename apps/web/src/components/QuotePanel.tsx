@@ -212,7 +212,7 @@ function CopyButton({
   onClick: () => void;
 }) {
   return (
-    <button aria-label={label} className="copy-button" onClick={onClick} type="button">
+    <button aria-label={label} className={`copy-button ${copied ? "copy-button-copied" : ""}`} onClick={onClick} type="button">
       {copied ? <Check size={13} /> : <Copy size={13} />}
       <span>{copied ? "Copied" : "Copy"}</span>
     </button>
