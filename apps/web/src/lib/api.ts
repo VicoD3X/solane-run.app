@@ -22,10 +22,10 @@ import type {
   ZkillKillmailSummary,
 } from "../types";
 import { sanitizeApiText, sanitizeFiniteNumber, sanitizeHexColor, sanitizePositiveInteger, sanitizeSystemQuery } from "./guards";
+import { isCalculatorSearchVisible } from "./systemFilters";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8001";
 const REQUEST_TIMEOUT_MS = 8_000;
-const CALCULATOR_BLOCKED_SERVICE_TYPES = new Set<SolarSystem["serviceType"]>(["NpcNullSec"]);
 
 type RouteResponse = {
   systems: number[];
@@ -52,7 +52,7 @@ export async function fetchSystems(query: string, limit = 12): Promise<SolarSyst
   const systems = await getJson<unknown[]>(`/api/eve/systems?${params.toString()}`);
   return systems
     .map((system) => normalizeSolarSystem(system))
-    .filter((system) => !CALCULATOR_BLOCKED_SERVICE_TYPES.has(system.serviceType))
+    .filter(isCalculatorSearchVisible)
     .slice(0, limit);
 }
 

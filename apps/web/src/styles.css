@@ -1,60 +1,8 @@
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("./assets/fonts/inter-400.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url("./assets/fonts/inter-500.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("./assets/fonts/inter-600.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("./assets/fonts/inter-700.ttf") format("truetype");
-}
+@import "./styles/theme.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  color-scheme: dark;
-  --page: #07111b;
-  --panel: #0c1723;
-  --panel-strong: #101d2a;
-  --panel-soft: #132232;
-  --line: #23384c;
-  --line-strong: #35536b;
-  --text: #eef6fb;
-  --muted: #9dafbd;
-  --dim: #728697;
-  --blue: #1a9fff;
-  --blue-soft: #0e5f9a;
-  --steel: #8fa8ba;
-  --green: #79ae6f;
-  --amber: #d7a642;
-  --danger: #ff653f;
-  --font-main: "Inter", system-ui, sans-serif;
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
-}
 
 * {
   box-sizing: border-box;
