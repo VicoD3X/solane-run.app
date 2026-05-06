@@ -26,7 +26,8 @@ The calculator consumes Solane Engine endpoints:
 
 - Public freight sizes are focused on Solane Run core DST / BR service:
   `13,000 m3` and `60,000 m3`.
-- NPC nullsec is not offered by the public calculator.
+- NPC nullsec is not offered by the public calculator and is hidden from
+  pickup/destination search.
 - Collateral limit is `6B ISK`, except `13,000 m3` LowSec service capped
   at `4B ISK`.
 - Critical non-HighSec pickup/destination systems are selectable, but the rest

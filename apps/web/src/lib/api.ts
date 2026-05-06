@@ -25,6 +25,7 @@ import { sanitizeApiText, sanitizeFiniteNumber, sanitizeHexColor, sanitizePositi
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8001";
 const REQUEST_TIMEOUT_MS = 8_000;
+const CALCULATOR_BLOCKED_SERVICE_TYPES = new Set<SolarSystem["serviceType"]>(["NpcNullSec"]);
 
 type RouteResponse = {
   systems: number[];
@@ -43,12 +44,16 @@ export type EsiStatus = {
 };
 
 export async function fetchSystems(query: string, limit = 12): Promise<SolarSystem[]> {
+  const apiLimit = Math.max(limit, 24);
   const params = new URLSearchParams({
     q: sanitizeSystemQuery(query),
-    limit: String(limit),
+    limit: String(apiLimit),
   });
   const systems = await getJson<unknown[]>(`/api/eve/systems?${params.toString()}`);
-  return systems.map((system) => normalizeSolarSystem(system));
+  return systems
+    .map((system) => normalizeSolarSystem(system))
+    .filter((system) => !CALCULATOR_BLOCKED_SERVICE_TYPES.has(system.serviceType))
+    .slice(0, limit);
 }
 
 export async function fetchEsiRoute(originId: number, destinationId: number): Promise<RouteResult> {
